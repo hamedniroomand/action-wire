@@ -1,13 +1,13 @@
 // @vitest-environment happy-dom
 
-import type { AgentAdapter, AssistantOptions, ToolSource } from '@webmcp-agent/core';
+import type { AgentAdapter, AssistantOptions, ToolSource } from '@action-wire/core';
 import { afterEach, expect, it, vi } from 'vitest';
 
 import { createAssistant } from '../src/index';
 
 afterEach(() => {
   vi.restoreAllMocks();
-  document.querySelectorAll('webmcp-assistant').forEach((node) => {
+  document.querySelectorAll('action-wire').forEach((node) => {
     node.remove();
   });
 });
@@ -35,7 +35,7 @@ it('creates one widget from two mounts', () => {
   const assistant = createAssistant(options());
   assistant.mount();
   assistant.mount();
-  expect(document.querySelectorAll('webmcp-assistant')).toHaveLength(1);
+  expect(document.querySelectorAll('action-wire')).toHaveLength(1);
   assistant.dispose();
 });
 
@@ -43,7 +43,7 @@ it('detaches the UI on unmount', () => {
   const assistant = createAssistant(options());
   assistant.mount();
   assistant.unmount();
-  expect(document.querySelector('webmcp-assistant')).toBeNull();
+  expect(document.querySelector('action-wire')).toBeNull();
   assistant.dispose();
 });
 
@@ -54,7 +54,7 @@ it('preserves the session after remount', async () => {
   assistant.unmount();
   assistant.mount();
   expect(assistant.getState().messages).toContainEqual({ role: 'user', content: 'Hello' });
-  expect(document.querySelectorAll('webmcp-assistant')).toHaveLength(1);
+  expect(document.querySelectorAll('action-wire')).toHaveLength(1);
   assistant.dispose();
 });
 
@@ -78,7 +78,7 @@ it('cancels work and releases resources on dispose', async () => {
   });
   assistant.dispose();
   await sending;
-  expect(document.querySelector('webmcp-assistant')).toBeNull();
+  expect(document.querySelector('action-wire')).toBeNull();
   expect(stop).toHaveBeenCalled();
   expect(generate.mock.calls[0]?.[0].signal?.aborted).toBe(true);
 });

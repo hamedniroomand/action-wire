@@ -10,7 +10,7 @@
     "typeAware": true,
     "typeCheck": true
   },
-  "ignorePatterns": ["docs/.vitepress/theme/**"],
+  "ignorePatterns": ["docs/.vitepress/theme/**", "docs/.docs/**"],
   "rules": {},
   "env": {
     "builtin": true

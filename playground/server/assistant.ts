@@ -1,7 +1,7 @@
 export type AssistantEnv = {
-  readonly WEBMCP_AGENT_UPSTREAM_URL?: string;
-  readonly WEBMCP_AGENT_MODEL?: string;
-  readonly WEBMCP_AGENT_API_KEY?: string;
+  readonly ACTION_WIRE_UPSTREAM_URL?: string;
+  readonly ACTION_WIRE_MODEL?: string;
+  readonly ACTION_WIRE_API_KEY?: string;
 };
 
 export type FetchLike = (url: string, init: RequestInit) => Promise<Response>;
@@ -21,14 +21,11 @@ export async function handleAssistantRequest(
   if (new URL(request.url).pathname !== '/api/assistant') {
     return fail(404, 'This path is not available.');
   }
-  const upstream = readSetting(env.WEBMCP_AGENT_UPSTREAM_URL);
-  const model = readSetting(env.WEBMCP_AGENT_MODEL);
-  const key = readSetting(env.WEBMCP_AGENT_API_KEY);
+  const upstream = readSetting(env.ACTION_WIRE_UPSTREAM_URL);
+  const model = readSetting(env.ACTION_WIRE_MODEL);
+  const key = readSetting(env.ACTION_WIRE_API_KEY);
   if (upstream === undefined || model === undefined || key === undefined) {
-    return fail(
-      503,
-      'Set WEBMCP_AGENT_UPSTREAM_URL, WEBMCP_AGENT_MODEL, and WEBMCP_AGENT_API_KEY.',
-    );
+    return fail(503, 'Set ACTION_WIRE_UPSTREAM_URL, ACTION_WIRE_MODEL, and ACTION_WIRE_API_KEY.');
   }
   const lengthHeader = request.headers.get('content-length');
   if (lengthHeader !== null) {

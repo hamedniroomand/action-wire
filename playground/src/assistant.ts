@@ -1,5 +1,5 @@
-import { openAICompatible } from '@webmcp-agent/agent';
-import { createAssistant } from 'webmcp-agent';
+import { openAICompatible } from '@action-wire/agent';
+import { createAssistant } from 'action-wire';
 
 export function mountAssistant(): void {
   createAssistant({

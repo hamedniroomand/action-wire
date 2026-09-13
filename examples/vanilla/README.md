@@ -1,6 +1,6 @@
 # Vanilla JavaScript example
 
-This host uses the built `webmcp-agent` facade. It does not import package source files.
+This host uses the built `action-wire` facade. It does not import package source files.
 
 ## Prerequisite
 

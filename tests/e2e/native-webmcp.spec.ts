@@ -62,16 +62,16 @@ test('discovers native page tools and runs listProjects without a WebMCP test do
   await page.getByRole('button', { name: 'Open assistant' }).click();
   await send(page, 'List my projects.');
   await expect(
-    page.locator('webmcp-assistant').locator('.tool-name', { hasText: 'listProjects' }),
+    page.locator('action-wire').locator('.tool-name', { hasText: 'listProjects' }),
   ).toBeVisible();
   await expect(
-    page.locator('webmcp-assistant').locator('.tool-status', { hasText: 'Success' }),
+    page.locator('action-wire').locator('.tool-status', { hasText: 'Success' }),
   ).toBeVisible();
   await expect(page.getByRole('button', { name: 'Phoenix' })).toBeVisible();
 });
 
 async function send(page: Page, text: string): Promise<void> {
-  await page.locator('webmcp-assistant').evaluate((node, value) => {
+  await page.locator('action-wire').evaluate((node, value) => {
     const field = node.shadowRoot?.querySelector('textarea');
     if (!(field instanceof HTMLTextAreaElement)) throw new Error('The composer is missing.');
     field.value = value;

@@ -1,4 +1,4 @@
-import type { AssistantState, Message } from '@webmcp-agent/core';
+import type { AssistantState, Message } from '@action-wire/core';
 
 import { busyCopy, emptyCopy, friendlyError } from '~/errors';
 import { updateToolCard } from '~/tool-card';

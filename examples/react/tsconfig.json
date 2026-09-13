@@ -6,8 +6,8 @@
     "jsx": "react-jsx",
     "noEmit": true,
     "paths": {
-      "webmcp-agent": ["../../packages/widget/dist/index.d.ts"],
-      "@webmcp-agent/agent": ["../../packages/agent/dist/index.d.ts"]
+      "action-wire": ["../../packages/widget/dist/index.d.ts"],
+      "@action-wire/agent": ["../../packages/agent/dist/index.d.ts"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"]

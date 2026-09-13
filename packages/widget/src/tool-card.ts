@@ -1,4 +1,4 @@
-import type { Activity } from '@webmcp-agent/core';
+import type { Activity } from '@action-wire/core';
 
 const STATUS: Record<Activity['status'], string> = {
   queued: 'Queued',

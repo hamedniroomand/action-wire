@@ -1,8 +1,17 @@
 {
-  "name": "@webmcp-agent/webmcp",
+  "name": "@action-wire/webmcp",
   "version": "0.1.0",
   "description": "Discover and execute native WebMCP tools.",
+  "homepage": "https://github.com/hamedniroomand/action-wire",
+  "bugs": {
+    "url": "https://github.com/hamedniroomand/action-wire/issues"
+  },
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hamedniroomand/action-wire.git",
+    "directory": "packages/webmcp"
+  },
   "files": [
     "dist"
   ],
@@ -21,7 +30,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p test/tsconfig.json"
   },
   "dependencies": {
-    "@webmcp-agent/core": "workspace:*",
+    "@action-wire/core": "workspace:*",
     "ajv": "^8.20.0"
   }
 }

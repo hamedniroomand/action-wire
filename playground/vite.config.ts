@@ -14,10 +14,10 @@ export default defineConfig({
   root,
   resolve: {
     alias: {
-      'webmcp-agent': path.join(src('widget'), 'index.ts'),
-      '@webmcp-agent/agent': path.join(src('agent'), 'index.ts'),
-      '@webmcp-agent/core': path.join(src('core'), 'index.ts'),
-      '@webmcp-agent/webmcp': path.join(src('webmcp'), 'index.ts'),
+      'action-wire': path.join(src('widget'), 'index.ts'),
+      '@action-wire/agent': path.join(src('agent'), 'index.ts'),
+      '@action-wire/core': path.join(src('core'), 'index.ts'),
+      '@action-wire/webmcp': path.join(src('webmcp'), 'index.ts'),
     },
   },
   plugins: [

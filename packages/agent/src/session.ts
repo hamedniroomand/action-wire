@@ -1,5 +1,5 @@
-import { createEmitter } from '@webmcp-agent/core';
-import type { AssistantState } from '@webmcp-agent/core';
+import { createEmitter } from '@action-wire/core';
+import type { AssistantState } from '@action-wire/core';
 
 const empty: AssistantState = Object.freeze({
   timeline: Object.freeze([]),

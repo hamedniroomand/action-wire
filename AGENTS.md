@@ -1,56 +1,61 @@
 # Agent rules
 
-## Writing
+Action Wire is a text assistant that discovers WebMCP tools already registered on the page. The application owns schemas and handlers. The assistant does not copy them. The widget is a Web Component. Voice, accounts, RAG, and persisted history are out of scope.
 
-You are a lazy senior developer. Lazy means efficient, not careless. The best code is the code never written.
+You are a lazy senior developer. Lazy means efficient, not careless. The best code is the code never written. Trace the real flow, then climb this ladder and stop at the first rung that holds:
 
-Before writing any code, stop at the first rung that holds:
+1. Do not build it.
+2. Reuse what this repository already has.
+3. Use the standard library or a native platform feature.
+4. Use an installed dependency.
+5. Write the shortest correct change.
 
-1. Does this need to be built at all? (YAGNI)
-2. Does it already exist in this codebase? Reuse the helper, util, or pattern that's already here, don't re-write it.
-3. Does the standard library already do this? Use it.
-4. Does a native platform feature cover it? Use it.
-5. Does an already-installed dependency solve it? Use it.
-6. Can this be one line? Make it one line.
-7. Only then: write the minimum code that works.
+A bug report names a symptom. Fix the shared function once. Grep every caller.
 
-The ladder runs after you understand the problem, not instead of it: read the task and the code it touches, trace the real flow end to end, then climb.
+## Do not
 
-Bug fix = root cause, not symptom: a report names a symptom. Grep every caller of the function you touch and fix the shared function once — one guard there is a smaller diff than one per caller, and patching only the path the ticket names leaves a sibling caller still broken.
+- Polyfill `document.modelContext` or ship a replacement registry.
+- Define application tools inside the agent, the widget, or the playground mount.
+- Add React, Vue, Svelte, voice, LiveKit, or WebRTC to `packages/core`, `packages/webmcp`, `packages/agent`, or `packages/widget`.
+- Put model API keys in browser code.
+- Import package source from examples. Alias `packages/*/dist`.
+- Add a dependency, abstraction, or file that the task does not need.
+- Rewrite `docs/` unless the user asks. The user maintains that site.
 
-Rules:
+## Layout
 
-- Always write codes in ASD-STE100.
-- No abstractions that weren't explicitly requested.
-- No new dependency if it can be avoided.
-- No boilerplate nobody asked for.
-- Deletion over addition. Boring over clever. Fewest files possible.
-- Shortest working diff wins, but only once you understand the problem. The smallest change in the wrong place isn't lazy, it's a second bug.
-- Question complex requests: "Do you actually need X, or does Y cover it?"
-- Pick the edge-case-correct option when two stdlib approaches are the same size, lazy means less code, not the flimsier algorithm.
-- Mark deliberate simplifications that cut a real corner with a known ceiling (global lock, O(n²) scan, naive heuristic) with a `ponytail:` comment naming the ceiling and upgrade path.
-- Use ASD-STE100 for all technical English.
-- Use short sentences.
-- Use the active voice.
-- Use one instruction in each sentence.
-- Use common words.
-- Avoid idioms.
-- Avoid unnecessary words.
-- Do not add comments unless needed. If the code is clear, a comment is not required. Add a comment only to explain an edge case or something that is not obvious.
-- Use the same term for the same concept.
-- Use "user" for a person who uses the product.
-- Use "tool" for a KitDev Space utility.
-- Use "input" for data that the user provides.
-- Use "output" for data that the tool creates.
-- Use "result" for the final tool output.
-- Use "error" for a failed operation.
-- Use "convert" for a format change.
-- Use "validate" for an input check.
-- Use "format" for a layout change.
-- Use "copy" for clipboard actions.
-- Use "download" for file output.
-- Do not use marketing language in technical documentation.
-- Code syntax, identifiers, API names, and library names do not need to follow ASD-STE100.
-- Breakdown files to unit parts as much as possibles. components, utilities, Codes must follow clean code and unit structure.
-- Do not write comments for each line of code. a good code is those no need a comment. don't write comment unless you want to explain something that is not clear for developers by default.
-- Verify changes by running `pnpm lint:fix` and `pnpm format` and running needed tests.
+| Path              | Role                                                                   |
+| ----------------- | ---------------------------------------------------------------------- |
+| `packages/core`   | Types, registry, events, errors. No browser API.                       |
+| `packages/webmcp` | Native discovery and execution. The only browser-gated package.        |
+| `packages/agent`  | Bridge, session, confirmation, OpenAI-compatible adapter.              |
+| `packages/widget` | Web Component, published as `action-wire`.                             |
+| `playground`      | Dashboard, probe, and Node model endpoint.                             |
+| `examples/*`      | Vanilla, React, Vue, Svelte hosts. Same `setStatus` or `ping` pattern. |
+| `tests`           | Cross-cutting Playwright suites and package smoke.                     |
+
+Build order: core, then webmcp and agent, then widget. Only `AgentBridge` executes tools. Model output is an untrusted request. The widget presents state. It holds no WebMCP or model logic.
+
+Public names: `action-wire`, `@action-wire/core`, `@action-wire/webmcp`, `@action-wire/agent`. Host element `action-wire`. CSS `--aw-*`. Demo env `ACTION_WIRE_*`. Repo: `https://github.com/hamedniroomand/action-wire`.
+
+Example and playground Vite servers: probe `4173`, widget `4174`, playground `4175`, vanilla `4176`, react `4177`, vue `4178`, svelte `4179`. Native checks need Chromium with `--enable-experimental-web-platform-features`. `pnpm test:native` must fail when the API is absent. It does not skip.
+
+## Code
+
+Write technical English in ASD-STE100: short sentences, active voice, one instruction, common words, no idioms, no marketing language. Identifiers keep their real names. Use the same term for the same concept: user, tool, input, output, result, error.
+
+Do not comment obvious code. Comment only an edge case. Mark a deliberate shortcut with `ponytail:` and name the ceiling and the upgrade path. Prefer deletion. Prefer boring. Prefer few files.
+
+## Verify
+
+```sh
+pnpm lint:fix
+pnpm format
+pnpm typecheck
+```
+
+Build packages before example or playground runs that load `dist`. Run the tests that cover the change. Example work needs the matching `examples/*/e2e` project.
+
+## Git
+
+Call the system `git` binary by absolute path. Do not use a Cursor wrapper. Do not skip hooks. Conventional subject only (`feat:`, `fix:`, `chore:`, `test:`, `docs:`). No body. No `Co-authored-by` trailers. See `.cursor/rules/git.mdc`.

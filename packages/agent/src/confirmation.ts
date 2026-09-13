@@ -1,9 +1,4 @@
-import type {
-  Confirmation,
-  ConfirmationPolicy,
-  ToolCall,
-  ToolDefinition,
-} from '@webmcp-agent/core';
+import type { Confirmation, ConfirmationPolicy, ToolCall, ToolDefinition } from '@action-wire/core';
 
 export function needsConfirmation(
   tool: ToolDefinition,

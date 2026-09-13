@@ -1,5 +1,5 @@
-import { AgentError, createEmitter, createToolRegistry } from '@webmcp-agent/core';
-import type { ToolCall, ToolResult, ToolSnapshot, ToolSource } from '@webmcp-agent/core';
+import { AgentError, createEmitter, createToolRegistry } from '@action-wire/core';
+import type { ToolCall, ToolResult, ToolSnapshot, ToolSource } from '@action-wire/core';
 
 import { executeNativeTool } from '~/execute';
 import { createGeneration, listenForToolChange } from '~/lifecycle';

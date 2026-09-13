@@ -5,7 +5,7 @@ import type {
   MountedAssistant,
   ToolDefinition,
   ToolSource,
-} from '@webmcp-agent/core';
+} from '@action-wire/core';
 
 import { createAssistant } from '../src/index';
 

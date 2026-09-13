@@ -34,7 +34,7 @@ test('keeps the composer visible at 320px', async ({ page }) => {
 test('disables motion when the user prefers reduced motion', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
-  const duration = await page.locator('webmcp-assistant').evaluate((node) => {
+  const duration = await page.locator('action-wire').evaluate((node) => {
     const launcher = node.shadowRoot?.querySelector('.launcher');
     if (!(launcher instanceof HTMLElement)) throw new Error('missing launcher');
     return getComputedStyle(launcher).transitionDuration;
@@ -58,7 +58,7 @@ for (const host of HOSTS) {
   test(`shows one widget on the ${host.name} host`, async ({ page }) => {
     await page.goto(host.url);
     await expect(page.getByRole('button', { name: 'Open assistant' })).toBeVisible();
-    expect(await page.locator('webmcp-assistant').count()).toBe(1);
+    expect(await page.locator('action-wire').count()).toBe(1);
   });
 }
 
@@ -102,7 +102,7 @@ async function assertMobileComposer(page: Page, width: number): Promise<void> {
   await page.setViewportSize({ width, height: 568 });
   await page.goto('/');
   await page.getByRole('button', { name: 'Open assistant' }).click();
-  const metrics = await page.locator('webmcp-assistant').evaluate((node) => {
+  const metrics = await page.locator('action-wire').evaluate((node) => {
     const panel = node.shadowRoot?.querySelector('[role="dialog"]');
     const composer = node.shadowRoot?.querySelector('.composer');
     if (!(panel instanceof HTMLElement) || !(composer instanceof HTMLElement)) {
@@ -133,7 +133,7 @@ async function panelBox(page: Page): Promise<{
   right: number;
   bottom: number;
 }> {
-  return page.locator('webmcp-assistant').evaluate((node) => {
+  return page.locator('action-wire').evaluate((node) => {
     const panel = node.shadowRoot?.querySelector('[role="dialog"]');
     if (!(panel instanceof HTMLElement)) throw new Error('missing panel');
     const box = panel.getBoundingClientRect();

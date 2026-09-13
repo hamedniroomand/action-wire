@@ -1,4 +1,4 @@
-import { AgentError } from '@webmcp-agent/core';
+import { AgentError } from '@action-wire/core';
 import type {
   Activity,
   Assistant,
@@ -9,7 +9,7 @@ import type {
   ToolCall,
   ToolResult,
   ToolSnapshot,
-} from '@webmcp-agent/core';
+} from '@action-wire/core';
 
 import { buildConfirmation, needsConfirmation } from '~/confirmation';
 import { createSessionStore } from '~/session';

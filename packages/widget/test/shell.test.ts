@@ -1,13 +1,13 @@
 // @vitest-environment happy-dom
 
-import type { AgentAdapter, AssistantOptions, ToolSource } from '@webmcp-agent/core';
+import type { AgentAdapter, AssistantOptions, ToolSource } from '@action-wire/core';
 import { afterEach, expect, it, vi } from 'vitest';
 
 import { createAssistant } from '../src/index';
 
 afterEach(() => {
   vi.restoreAllMocks();
-  document.querySelectorAll('webmcp-assistant').forEach((node) => {
+  document.querySelectorAll('action-wire').forEach((node) => {
     node.remove();
   });
 });
@@ -32,7 +32,7 @@ function options(overrides: Partial<AssistantOptions> = {}): AssistantOptions {
 }
 
 function shadow(): ShadowRoot {
-  const host = document.querySelector('webmcp-assistant');
+  const host = document.querySelector('action-wire');
   if (host?.shadowRoot === null || host === null) throw new Error('missing widget');
   return host.shadowRoot;
 }

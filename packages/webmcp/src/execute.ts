@@ -1,5 +1,5 @@
-import { AgentError } from '@webmcp-agent/core';
-import type { ErrorCode, Json, ToolCall, ToolResult } from '@webmcp-agent/core';
+import { AgentError } from '@action-wire/core';
+import type { ErrorCode, Json, ToolCall, ToolResult } from '@action-wire/core';
 import { Ajv } from 'ajv';
 
 import { Ajv2020 } from '#ajv/2020';

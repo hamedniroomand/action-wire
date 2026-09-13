@@ -1,6 +1,6 @@
-import { createAgentBridge } from '@webmcp-agent/agent';
-import type { Assistant, AssistantOptions, MountedAssistant, ToolSource } from '@webmcp-agent/core';
-import { createWebMCPSource } from '@webmcp-agent/webmcp';
+import { createAgentBridge } from '@action-wire/agent';
+import type { Assistant, AssistantOptions, MountedAssistant, ToolSource } from '@action-wire/core';
+import { createWebMCPSource } from '@action-wire/webmcp';
 
 import { bindAssistant, defineAssistantElement, TAG } from '~/assistant-element';
 
@@ -12,7 +12,7 @@ export function createAssistant(options: AssistantOptions): MountedAssistant {
   function ensureBridge(): Assistant {
     if (bridge !== undefined) return bridge;
     const source = options.source ?? (ownedSource ??= createWebMCPSource());
-    bridge = createAgentBridge({
+    const next = createAgentBridge({
       source,
       model: options.model,
       ...(options.requiresConfirmation === undefined
@@ -21,7 +21,8 @@ export function createAssistant(options: AssistantOptions): MountedAssistant {
       ...(options.maxRounds === undefined ? {} : { maxRounds: options.maxRounds }),
       ...(options.timeoutMs === undefined ? {} : { timeoutMs: options.timeoutMs }),
     });
-    return bridge;
+    bridge = next;
+    return next;
   }
 
   return {

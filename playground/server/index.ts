@@ -85,6 +85,6 @@ function isMainModule(): boolean {
 }
 
 if (isMainModule()) {
-  const port = Number.parseInt(process.env['WEBMCP_AGENT_PORT'] ?? '8787', 10);
+  const port = Number.parseInt(process.env['ACTION_WIRE_PORT'] ?? '8787', 10);
   createAssistantServer().listen(Number.isFinite(port) ? port : 8787, '127.0.0.1');
 }

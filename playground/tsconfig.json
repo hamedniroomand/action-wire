@@ -5,9 +5,9 @@
     "types": [],
     "noEmit": true,
     "paths": {
-      "webmcp-agent": ["../packages/widget/dist/index.d.ts"],
-      "@webmcp-agent/agent": ["../packages/agent/dist/index.d.ts"],
-      "@webmcp-agent/core": ["../packages/core/dist/index.d.ts"]
+      "action-wire": ["../packages/widget/dist/index.d.ts"],
+      "@action-wire/agent": ["../packages/agent/dist/index.d.ts"],
+      "@action-wire/core": ["../packages/core/dist/index.d.ts"]
     }
   },
   "include": ["src/**/*.ts"]

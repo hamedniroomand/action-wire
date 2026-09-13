@@ -1,8 +1,17 @@
 {
-  "name": "webmcp-agent",
+  "name": "action-wire",
   "version": "0.1.0",
-  "description": "Accessible text assistant widget for WebMCP Agent.",
+  "description": "Accessible text assistant widget for Action Wire.",
+  "homepage": "https://github.com/hamedniroomand/action-wire",
+  "bugs": {
+    "url": "https://github.com/hamedniroomand/action-wire/issues"
+  },
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hamedniroomand/action-wire.git",
+    "directory": "packages/widget"
+  },
   "files": [
     "dist"
   ],
@@ -18,8 +27,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p test/tsconfig.json"
   },
   "dependencies": {
-    "@webmcp-agent/agent": "workspace:*",
-    "@webmcp-agent/core": "workspace:*",
-    "@webmcp-agent/webmcp": "workspace:*"
+    "@action-wire/agent": "workspace:*",
+    "@action-wire/core": "workspace:*",
+    "@action-wire/webmcp": "workspace:*"
   }
 }

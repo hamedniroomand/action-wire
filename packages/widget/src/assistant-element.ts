@@ -1,8 +1,8 @@
-import type { Assistant, AssistantState } from '@webmcp-agent/core';
+import type { Assistant, AssistantState } from '@action-wire/core';
 
 import { attachShell } from '~/shell';
 
-export const TAG = 'webmcp-assistant';
+export const TAG = 'action-wire';
 
 const sessions = new WeakMap<HTMLElement, { assistant: Assistant; developerMode: boolean }>();
 

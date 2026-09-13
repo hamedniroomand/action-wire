@@ -1,5 +1,5 @@
-import { AgentError } from '@webmcp-agent/core';
-import type { ToolDefinition, ToolSource } from '@webmcp-agent/core';
+import { AgentError } from '@action-wire/core';
+import type { ToolDefinition, ToolSource } from '@action-wire/core';
 import { expect, it, vi } from 'vitest';
 
 import { createAgentBridge } from '../src/bridge';

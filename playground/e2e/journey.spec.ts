@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 
 /**
  * Manual real-model run (do not assert model wording):
- * 1. Copy playground/.env.example to playground/.env and set WEBMCP_AGENT_*.
+ * 1. Copy playground/.env.example to playground/.env and set ACTION_WIRE_*.
  * 2. Start `pnpm playground:dev` and `node playground/server/index.ts`.
  * 3. Open http://127.0.0.1:4175 in Chromium with --enable-experimental-web-platform-features.
  * 4. Ask the assistant to open the latest project, rename it, then delete it.
@@ -32,26 +32,26 @@ test('opens Phoenix, renames to Aurora, denies then deletes once, and refreshes 
   await send(page, 'Open my latest project.');
   await expect(page.getByRole('heading', { name: 'Phoenix', exact: true })).toBeVisible();
   await expect(
-    page.locator('webmcp-assistant').locator('.tool-name', { hasText: 'openProject' }),
+    page.locator('action-wire').locator('.tool-name', { hasText: 'openProject' }),
   ).toBeVisible();
 
   await send(page, 'Rename it to Aurora.');
-  await page.locator('webmcp-assistant').getByRole('button', { name: 'Confirm' }).click();
+  await page.locator('action-wire').getByRole('button', { name: 'Confirm' }).click();
   await expect(page.getByRole('heading', { name: 'Aurora', exact: true })).toBeVisible();
   await expect(
-    page.locator('webmcp-assistant').locator('.tool-name', { hasText: 'renameProject' }),
+    page.locator('action-wire').locator('.tool-name', { hasText: 'renameProject' }),
   ).toBeVisible();
 
   await send(page, 'Delete it.');
-  await page.locator('webmcp-assistant').getByRole('button', { name: 'Cancel' }).click();
+  await page.locator('action-wire').getByRole('button', { name: 'Cancel' }).click();
   await expect(page.getByRole('heading', { name: 'Aurora', exact: true })).toBeVisible();
 
   await send(page, 'Delete it.');
-  await page.locator('webmcp-assistant').getByRole('button', { name: 'Delete' }).click();
+  await page.locator('action-wire').getByRole('button', { name: 'Delete' }).click();
   await expect(page.getByRole('heading', { name: 'Projects' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Aurora' })).toHaveCount(0);
   await expect(
-    page.locator('webmcp-assistant').locator('.tool-name', { hasText: 'deleteProject' }),
+    page.locator('action-wire').locator('.tool-name', { hasText: 'deleteProject' }),
   ).toHaveCount(2);
 
   await send(page, 'Open billing.');
@@ -74,7 +74,7 @@ test('opens Phoenix, renames to Aurora, denies then deletes once, and refreshes 
 });
 
 async function send(page: Page, text: string): Promise<void> {
-  await page.locator('webmcp-assistant').evaluate((node, value) => {
+  await page.locator('action-wire').evaluate((node, value) => {
     const field = node.shadowRoot?.querySelector('textarea');
     if (!(field instanceof HTMLTextAreaElement)) throw new Error('The composer is missing.');
     field.value = value;

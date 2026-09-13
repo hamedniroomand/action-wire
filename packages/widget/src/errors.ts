@@ -1,4 +1,4 @@
-import type { ErrorCode } from '@webmcp-agent/core';
+import type { ErrorCode } from '@action-wire/core';
 
 export function emptyCopy(): string {
   return 'Send a message to start.';

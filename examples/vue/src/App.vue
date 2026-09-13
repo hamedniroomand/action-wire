@@ -1,7 +1,7 @@
 <script setup lang="ts">
-  import { openAICompatible } from '@webmcp-agent/agent';
+  import { openAICompatible } from '@action-wire/agent';
+  import { createAssistant } from 'action-wire';
   import { onMounted, onUnmounted, ref } from 'vue';
-  import { createAssistant } from 'webmcp-agent';
 
   const live = ref(true);
   const label = ref('idle');

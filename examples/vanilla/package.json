@@ -5,6 +5,6 @@
   "license": "MIT",
   "type": "module",
   "dependencies": {
-    "@webmcp-agent/agent": "workspace:*"
+    "@action-wire/agent": "workspace:*"
   }
 }

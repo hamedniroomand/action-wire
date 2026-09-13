@@ -27,7 +27,7 @@ test('runs the built package, invokes the host handler, and destroys the widget'
     .poll(async () => page.evaluate(() => Reflect.get(globalThis, '__pinged')))
     .toBe(true);
   await page.getByRole('button', { name: 'Destroy assistant' }).click();
-  await expect(page.locator('webmcp-assistant')).toHaveCount(0);
+  await expect(page.locator('action-wire')).toHaveCount(0);
 });
 
 test('does not depend on React, Vue, or Svelte', async () => {
@@ -47,7 +47,7 @@ test('does not depend on React, Vue, or Svelte', async () => {
 });
 
 async function send(page: Page, text: string): Promise<void> {
-  await page.locator('webmcp-assistant').evaluate((node, value) => {
+  await page.locator('action-wire').evaluate((node, value) => {
     const field = node.shadowRoot?.querySelector('textarea');
     if (!(field instanceof HTMLTextAreaElement)) throw new Error('The composer is missing.');
     field.value = value;

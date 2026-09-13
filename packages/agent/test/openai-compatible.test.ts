@@ -1,5 +1,5 @@
-import { AgentError } from '@webmcp-agent/core';
-import type { Message, ToolDefinition } from '@webmcp-agent/core';
+import { AgentError } from '@action-wire/core';
+import type { Message, ToolDefinition } from '@action-wire/core';
 import { afterEach, expect, it, vi } from 'vitest';
 
 import { openAICompatible } from '~/index';

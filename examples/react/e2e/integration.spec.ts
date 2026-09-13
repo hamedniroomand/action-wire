@@ -3,7 +3,7 @@ import { expect, test, type Page } from '@playwright/test';
 test('keeps one assistant and one tool after StrictMode remount', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('button', { name: 'Open assistant' })).toBeVisible();
-  expect(await page.locator('webmcp-assistant').count()).toBe(1);
+  expect(await page.locator('action-wire').count()).toBe(1);
   expect(await toolNames(page)).toEqual(['setStatus']);
 });
 
@@ -30,14 +30,14 @@ test('removes the widget, tools, and listeners on unmount', async ({ page }) => 
   await page.goto('/');
   await expect(page.getByRole('button', { name: 'Open assistant' })).toBeVisible();
   await page.getByRole('button', { name: 'Unmount' }).click();
-  await expect(page.locator('webmcp-assistant')).toHaveCount(0);
+  await expect(page.locator('action-wire')).toHaveCount(0);
   expect(await toolNames(page)).toEqual([]);
   await page.getByRole('button', { name: 'Mount' }).click();
   await expect(page.getByRole('button', { name: 'Open assistant' })).toBeVisible();
-  expect(await page.locator('webmcp-assistant').count()).toBe(1);
+  expect(await page.locator('action-wire').count()).toBe(1);
   expect(await toolNames(page)).toEqual(['setStatus']);
   await page.getByRole('button', { name: 'Unmount' }).click();
-  await expect(page.locator('webmcp-assistant')).toHaveCount(0);
+  await expect(page.locator('action-wire')).toHaveCount(0);
   expect(await toolNames(page)).toEqual([]);
 });
 
@@ -58,7 +58,7 @@ async function toolNames(page: Page): Promise<string[]> {
 }
 
 async function send(page: Page, text: string): Promise<void> {
-  await page.locator('webmcp-assistant').evaluate((node, value) => {
+  await page.locator('action-wire').evaluate((node, value) => {
     const field = node.shadowRoot?.querySelector('textarea');
     if (!(field instanceof HTMLTextAreaElement)) throw new Error('The composer is missing.');
     field.value = value;

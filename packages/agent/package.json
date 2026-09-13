@@ -1,8 +1,17 @@
 {
-  "name": "@webmcp-agent/agent",
+  "name": "@action-wire/agent",
   "version": "0.1.0",
-  "description": "Headless text agent runtime for WebMCP Agent.",
+  "description": "Headless text agent runtime for Action Wire.",
+  "homepage": "https://github.com/hamedniroomand/action-wire",
+  "bugs": {
+    "url": "https://github.com/hamedniroomand/action-wire/issues"
+  },
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hamedniroomand/action-wire.git",
+    "directory": "packages/agent"
+  },
   "files": [
     "dist"
   ],
@@ -18,6 +27,6 @@
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p test/tsconfig.json"
   },
   "dependencies": {
-    "@webmcp-agent/core": "workspace:*"
+    "@action-wire/core": "workspace:*"
   }
 }

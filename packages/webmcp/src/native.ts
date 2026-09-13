@@ -1,4 +1,4 @@
-import { AgentError } from '@webmcp-agent/core';
+import { AgentError } from '@action-wire/core';
 
 export type NativeRegisteredTool = object;
 

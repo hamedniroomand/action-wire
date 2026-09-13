@@ -1,11 +1,19 @@
 {
-  "name": "webmcp-agent",
+  "name": "action-wire",
   "version": "1.0.0",
   "private": true,
   "description": "",
   "keywords": [],
+  "homepage": "https://github.com/hamedniroomand/action-wire",
+  "bugs": {
+    "url": "https://github.com/hamedniroomand/action-wire/issues"
+  },
   "license": "MIT",
   "author": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hamedniroomand/action-wire.git"
+  },
   "type": "module",
   "scripts": {
     "lint": "oxlint .",

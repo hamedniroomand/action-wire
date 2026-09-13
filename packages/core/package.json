@@ -1,8 +1,17 @@
 {
-  "name": "@webmcp-agent/core",
+  "name": "@action-wire/core",
   "version": "0.1.0",
-  "description": "Shared types and tool registry for WebMCP Agent.",
+  "description": "Shared types and tool registry for Action Wire.",
+  "homepage": "https://github.com/hamedniroomand/action-wire",
+  "bugs": {
+    "url": "https://github.com/hamedniroomand/action-wire/issues"
+  },
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hamedniroomand/action-wire.git",
+    "directory": "packages/core"
+  },
   "files": [
     "dist"
   ],

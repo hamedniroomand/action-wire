@@ -1,4 +1,4 @@
-import type { Assistant, AssistantState } from '@webmcp-agent/core';
+import type { Assistant, AssistantState } from '@action-wire/core';
 
 import { createComposer } from '~/composer';
 import { attachConfirmation } from '~/confirmation-view';

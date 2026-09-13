@@ -1,15 +1,15 @@
 :root {
-  --wa-color-accent: #2563eb;
-  --wa-color-accent-text: #fff;
-  --wa-color-surface: #fff;
-  --wa-color-canvas: #f4f7fb;
-  --wa-color-border: #e5e7eb;
-  --wa-color-text: #111827;
-  --wa-color-muted: #6b7280;
-  --wa-color-danger: #dc2626;
-  --wa-radius: 16px;
-  --wa-shadow: 0 10px 30px rgb(15 23 42 / 8%);
-  --wa-font: ui-sans-serif, system-ui, sans-serif;
+  --aw-color-accent: #2563eb;
+  --aw-color-accent-text: #fff;
+  --aw-color-surface: #fff;
+  --aw-color-canvas: #f4f7fb;
+  --aw-color-border: #e5e7eb;
+  --aw-color-text: #111827;
+  --aw-color-muted: #6b7280;
+  --aw-color-danger: #dc2626;
+  --aw-radius: 16px;
+  --aw-shadow: 0 10px 30px rgb(15 23 42 / 8%);
+  --aw-font: ui-sans-serif, system-ui, sans-serif;
 }
 
 *,
@@ -22,9 +22,9 @@ html,
 body {
   margin: 0;
   min-height: 100%;
-  background: var(--wa-color-canvas);
-  color: var(--wa-color-text);
-  font-family: var(--wa-font);
+  background: var(--aw-color-canvas);
+  color: var(--aw-color-text);
+  font-family: var(--aw-font);
 }
 
 #app {
@@ -37,10 +37,10 @@ body {
 
 .sidebar,
 main {
-  background: var(--wa-color-surface);
-  border: 1px solid var(--wa-color-border);
-  border-radius: var(--wa-radius);
-  box-shadow: var(--wa-shadow);
+  background: var(--aw-color-surface);
+  border: 1px solid var(--aw-color-border);
+  border-radius: var(--aw-radius);
+  box-shadow: var(--aw-shadow);
 }
 
 .sidebar {
@@ -70,7 +70,7 @@ main {
 
 .sidebar button[aria-current='page'] {
   background: #eff6ff;
-  color: var(--wa-color-accent);
+  color: var(--aw-color-accent);
 }
 
 main {
@@ -84,7 +84,7 @@ h1 {
 
 .lede,
 .meta {
-  color: var(--wa-color-muted);
+  color: var(--aw-color-muted);
 }
 
 .lede {
@@ -103,7 +103,7 @@ form,
 input {
   flex: 1 1 180px;
   padding: 10px 12px;
-  border: 1px solid var(--wa-color-border);
+  border: 1px solid var(--aw-color-border);
   border-radius: 10px;
   font: inherit;
 }
@@ -116,13 +116,13 @@ main button {
   padding: 10px 14px;
   border: 0;
   border-radius: 10px;
-  background: var(--wa-color-accent);
-  color: var(--wa-color-accent-text);
+  background: var(--aw-color-accent);
+  color: var(--aw-color-accent-text);
   cursor: pointer;
 }
 
 main button.danger {
-  background: var(--wa-color-danger);
+  background: var(--aw-color-danger);
 }
 
 main button:disabled {
@@ -144,7 +144,7 @@ main button:disabled {
   align-items: flex-start;
   width: 100%;
   padding: 16px;
-  border: 1px solid var(--wa-color-border);
+  border: 1px solid var(--aw-color-border);
   border-radius: 12px;
   background: #f8fafc;
   color: inherit;

@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { openAICompatible } from '@webmcp-agent/agent';
+  import { openAICompatible } from '@action-wire/agent';
   import { onDestroy, onMount } from 'svelte';
-  import { createAssistant } from 'webmcp-agent';
+  import { createAssistant } from 'action-wire';
 
   let live = $state(true);
   let label = $state('idle');

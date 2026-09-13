@@ -1,4 +1,4 @@
-import type { Assistant, AssistantState } from '@webmcp-agent/core';
+import type { Assistant, AssistantState } from '@action-wire/core';
 
 const WARNINGS = { Delete: 'This action cannot be undone.' } as const;
 

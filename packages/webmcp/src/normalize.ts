@@ -1,5 +1,5 @@
-import { AgentError } from '@webmcp-agent/core';
-import type { Json, ToolDefinition } from '@webmcp-agent/core';
+import { AgentError } from '@action-wire/core';
+import type { Json, ToolDefinition } from '@action-wire/core';
 
 import type { NativeRegisteredTool } from '~/native';
 

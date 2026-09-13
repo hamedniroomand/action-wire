@@ -1,4 +1,4 @@
-import type { ToolDefinition, ToolSource } from '@webmcp-agent/core';
+import type { ToolDefinition, ToolSource } from '@action-wire/core';
 import { expect, it, vi } from 'vitest';
 
 import { createAgentBridge } from '../src/bridge';

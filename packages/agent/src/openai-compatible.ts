@@ -1,4 +1,4 @@
-import { AgentError } from '@webmcp-agent/core';
+import { AgentError } from '@action-wire/core';
 import type {
   AgentAdapter,
   AgentTurn,
@@ -6,7 +6,7 @@ import type {
   Message,
   ToolCall,
   ToolDefinition,
-} from '@webmcp-agent/core';
+} from '@action-wire/core';
 
 const SAFE_NAME = /^[a-zA-Z0-9_-]{1,64}$/;
 

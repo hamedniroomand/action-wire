@@ -9,9 +9,9 @@ import { createAssistantServer } from './index';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const env = {
-  WEBMCP_AGENT_UPSTREAM_URL: 'https://example.test/v1/chat/completions',
-  WEBMCP_AGENT_MODEL: 'demo-model',
-  WEBMCP_AGENT_API_KEY: 'server-secret',
+  ACTION_WIRE_UPSTREAM_URL: 'https://example.test/v1/chat/completions',
+  ACTION_WIRE_MODEL: 'demo-model',
+  ACTION_WIRE_API_KEY: 'server-secret',
 };
 
 afterEach(() => {
@@ -34,9 +34,9 @@ it('returns an actionable error when credentials are missing', async () => {
   );
   expect(response.ok).toBe(false);
   const text = await response.text();
-  expect(text).toContain('WEBMCP_AGENT_UPSTREAM_URL');
-  expect(text).toContain('WEBMCP_AGENT_MODEL');
-  expect(text).toContain('WEBMCP_AGENT_API_KEY');
+  expect(text).toContain('ACTION_WIRE_UPSTREAM_URL');
+  expect(text).toContain('ACTION_WIRE_MODEL');
+  expect(text).toContain('ACTION_WIRE_API_KEY');
 });
 
 it('rejects a malformed or oversized body', async () => {
@@ -128,7 +128,7 @@ it('keeps provider secrets out of the browser adapter', () => {
     const source = readFileSync(join(agentRoot, name), 'utf8');
     expect(source).not.toMatch(/Authorization/i);
     expect(source).not.toMatch(/api[_-]?key/i);
-    expect(source).not.toMatch(/WEBMCP_AGENT_API_KEY/);
+    expect(source).not.toMatch(/ACTION_WIRE_API_KEY/);
     expect(source).not.toMatch(/process\.env/);
   }
 });

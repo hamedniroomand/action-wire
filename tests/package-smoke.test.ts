@@ -60,7 +60,7 @@ it('packs installable ESM packages without workspace aliases', () => {
     }
     const tarballs = readdirSync(packs).filter((name) => name.endsWith('.tgz'));
     expect(tarballs).toHaveLength(4);
-    const widgetTar = tarballs.find((name) => /^webmcp-agent-\d/.test(name));
+    const widgetTar = tarballs.find((name) => /^action-wire-\d/.test(name));
     expect(widgetTar).toBeDefined();
     if (widgetTar !== undefined) {
       const bytes = statSync(path.join(packs, widgetTar)).size;
@@ -80,10 +80,10 @@ it('packs installable ESM packages without workspace aliases', () => {
       },
     );
 
-    const installed = readPkg(path.join(consumer, 'node_modules/webmcp-agent/package.json'));
+    const installed = readPkg(path.join(consumer, 'node_modules/action-wire/package.json'));
     expect(JSON.stringify(installed)).not.toContain('workspace:');
     expect(
-      JSON.stringify(readPkg(path.join(consumer, 'node_modules/@webmcp-agent/agent/package.json'))),
+      JSON.stringify(readPkg(path.join(consumer, 'node_modules/@action-wire/agent/package.json'))),
     ).not.toContain('workspace:');
 
     const result = execFileSync(
@@ -91,7 +91,7 @@ it('packs installable ESM packages without workspace aliases', () => {
       [
         '--input-type=module',
         '-e',
-        "import { createToolRegistry } from '@webmcp-agent/core'; import { createAgentBridge } from '@webmcp-agent/agent'; import { createAssistant } from 'webmcp-agent'; import { createWebMCPSource } from '@webmcp-agent/webmcp'; createToolRegistry(); console.log([typeof createAgentBridge, typeof createAssistant, typeof createWebMCPSource].join(' '));",
+        "import { createToolRegistry } from '@action-wire/core'; import { createAgentBridge } from '@action-wire/agent'; import { createAssistant } from 'action-wire'; import { createWebMCPSource } from '@action-wire/webmcp'; createToolRegistry(); console.log([typeof createAgentBridge, typeof createAssistant, typeof createWebMCPSource].join(' '));",
       ],
       { cwd: consumer, encoding: 'utf8' },
     );
@@ -99,7 +99,7 @@ it('packs installable ESM packages without workspace aliases', () => {
 
     writeFileSync(
       path.join(consumer, 'check.ts'),
-      "import { createAssistant } from 'webmcp-agent';\nimport { openAICompatible } from '@webmcp-agent/agent';\nimport { createToolRegistry } from '@webmcp-agent/core';\nimport { createWebMCPSource } from '@webmcp-agent/webmcp';\nexport const registry = createToolRegistry();\nexport const source = createWebMCPSource;\nexport const model = openAICompatible;\nexport const assistant = createAssistant;\n",
+      "import { createAssistant } from 'action-wire';\nimport { openAICompatible } from '@action-wire/agent';\nimport { createToolRegistry } from '@action-wire/core';\nimport { createWebMCPSource } from '@action-wire/webmcp';\nexport const registry = createToolRegistry();\nexport const source = createWebMCPSource;\nexport const model = openAICompatible;\nexport const assistant = createAssistant;\n",
     );
     writeFileSync(
       path.join(consumer, 'tsconfig.json'),

@@ -4,7 +4,7 @@ test('keeps the panel inside 320px and the composer visible', async ({ page }) =
   await page.setViewportSize({ width: 320, height: 360 });
   await page.goto('/');
   await page.getByRole('button', { name: 'Open assistant' }).click();
-  const metrics = await page.locator('webmcp-assistant').evaluate((node) => {
+  const metrics = await page.locator('action-wire').evaluate((node) => {
     const panel = node.shadowRoot?.querySelector('[role="dialog"]');
     const composer = node.shadowRoot?.querySelector('.composer');
     if (!(panel instanceof HTMLElement) || !(composer instanceof HTMLElement)) {
@@ -30,7 +30,7 @@ test('keeps the panel inside 320px and the composer visible', async ({ page }) =
 test('runs the native delete only after the Delete click', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Open assistant' }).click();
-  await page.locator('webmcp-assistant').evaluate((node) => {
+  await page.locator('action-wire').evaluate((node) => {
     const field = node.shadowRoot?.querySelector('textarea');
     if (!(field instanceof HTMLTextAreaElement)) throw new Error('missing composer');
     field.value = 'Delete Phoenix.';
@@ -40,7 +40,7 @@ test('runs the native delete only after the Delete click', async ({ page }) => {
   });
   await expect
     .poll(async () =>
-      page.locator('webmcp-assistant').evaluate((node) => {
+      page.locator('action-wire').evaluate((node) => {
         const buttons = [...(node.shadowRoot?.querySelectorAll('button') ?? [])];
         return buttons.some((button) => button.textContent === 'Delete');
       }),

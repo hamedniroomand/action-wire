@@ -1,4 +1,4 @@
-import type { ToolDefinition } from '@webmcp-agent/core';
+import type { ToolDefinition } from '@action-wire/core';
 
 import { createAssistant } from '../src/index';
 import { mountCase } from './cases';

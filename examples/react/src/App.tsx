@@ -1,6 +1,6 @@
-import { openAICompatible } from '@webmcp-agent/agent';
+import { openAICompatible } from '@action-wire/agent';
+import { createAssistant } from 'action-wire';
 import { useEffect, useRef, useState } from 'react';
-import { createAssistant } from 'webmcp-agent';
 
 export function App() {
   const [mounted, setMounted] = useState(true);

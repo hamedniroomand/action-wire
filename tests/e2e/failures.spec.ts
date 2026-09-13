@@ -104,7 +104,7 @@ test('removes the widget and aborts work on teardown', async ({ page }) => {
     if (typeof dispose !== 'function') throw new Error('missing dispose');
     dispose.call(assistant);
   });
-  await expect(page.locator('webmcp-assistant')).toHaveCount(0);
+  await expect(page.locator('action-wire')).toHaveCount(0);
   await expect
     .poll(async () => page.evaluate(() => Reflect.get(globalThis, '__aborted')))
     .toBe(true);
@@ -116,7 +116,7 @@ async function openCase(page: Page, name: string): Promise<void> {
 }
 
 async function send(page: Page, text: string): Promise<void> {
-  await page.locator('webmcp-assistant').evaluate((node, value) => {
+  await page.locator('action-wire').evaluate((node, value) => {
     const field = node.shadowRoot?.querySelector('textarea');
     if (!(field instanceof HTMLTextAreaElement)) throw new Error('The composer is missing.');
     field.value = value;
