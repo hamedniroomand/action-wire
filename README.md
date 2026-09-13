@@ -1,3 +1,11 @@
+<p align="center">
+  <img
+    src="assets/logo.png"
+    alt="Action Wire"
+    width="160"
+  />
+</p>
+
 # Action Wire
 
 A text assistant widget that uses the WebMCP tools already registered on a page. The application owns tool schemas and handlers. The assistant discovers them. Do not define the same tools again in the agent.
