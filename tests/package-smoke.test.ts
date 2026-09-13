@@ -17,7 +17,7 @@ it('packs installable ESM packages without workspace aliases', () => {
     expect(readFileSync(file, 'utf8'), file).not.toMatch(/from ['"]~\//);
   }
   const pkg = readPkg(path.join(packageDir, 'package.json'));
-  expect(pkg['files']).toEqual(['dist']);
+  expect(pkg['files']).toEqual(['dist', 'README.md']);
   expect(pkg['type']).toBe('module');
   expect(pkg['sideEffects']).toBe(false);
   const dependencies = {

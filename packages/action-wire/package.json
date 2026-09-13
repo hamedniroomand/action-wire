@@ -20,7 +20,8 @@
     "directory": "packages/action-wire"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "type": "module",
   "sideEffects": false,
@@ -32,7 +33,8 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p test/tsconfig.json && tsc -p e2e/tsconfig.json"
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p test/tsconfig.json && tsc -p e2e/tsconfig.json",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@cfworker/json-schema": "^4.1.1"
