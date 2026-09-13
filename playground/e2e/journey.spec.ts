@@ -36,23 +36,23 @@ test('opens Phoenix, renames to Aurora, denies then deletes once, and refreshes 
   ).toBeVisible();
 
   await send(page, 'Rename it to Aurora.');
-  await page.getByRole('button', { name: 'Confirm' }).click();
+  await page.locator('webmcp-assistant').getByRole('button', { name: 'Confirm' }).click();
   await expect(page.getByRole('heading', { name: 'Aurora', exact: true })).toBeVisible();
   await expect(
     page.locator('webmcp-assistant').locator('.tool-name', { hasText: 'renameProject' }),
   ).toBeVisible();
 
   await send(page, 'Delete it.');
-  await page.getByRole('button', { name: 'Cancel' }).click();
+  await page.locator('webmcp-assistant').getByRole('button', { name: 'Cancel' }).click();
   await expect(page.getByRole('heading', { name: 'Aurora', exact: true })).toBeVisible();
 
   await send(page, 'Delete it.');
-  await page.getByRole('button', { name: 'Delete' }).click();
+  await page.locator('webmcp-assistant').getByRole('button', { name: 'Delete' }).click();
   await expect(page.getByRole('heading', { name: 'Projects' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Aurora' })).toHaveCount(0);
   await expect(
     page.locator('webmcp-assistant').locator('.tool-name', { hasText: 'deleteProject' }),
-  ).toBeVisible();
+  ).toHaveCount(2);
 
   await send(page, 'Open billing.');
   await expect(page.getByRole('heading', { name: 'Billing', exact: true })).toBeVisible();
