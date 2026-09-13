@@ -1,7 +1,7 @@
 {
   "name": "action-wire",
   "version": "1.0.0",
-  "private": true,
+  "private": false,
   "description": "",
   "keywords": [],
   "homepage": "https://github.com/hamedniroomand/action-wire",
