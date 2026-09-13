@@ -15,6 +15,7 @@ export function createWebMCPSource(): ToolSource {
   const generation = createGeneration();
   let executionRevision = 0;
   let lastContentRevision = 0;
+  let nativeDirty = false;
   let handles = new Map<string, NormalizedNativeTool>();
   let snapshot: ToolSnapshot = registry.getSnapshot();
   let disposed = false;
@@ -68,18 +69,14 @@ export function createWebMCPSource(): ToolSource {
     }
     const content = registry.replace(current.map((item) => item.definition));
     const next = new Map(current.map((item) => [item.definition.id, item]));
-    let handlesChanged = next.size !== handles.size;
-    if (!handlesChanged) {
-      for (const [id, item] of next) {
-        if (handles.get(id)?.native !== item.native) {
-          handlesChanged = true;
-          break;
-        }
-      }
-    }
-    if (handlesChanged || content.revision !== lastContentRevision) {
+    const idsChanged =
+      next.size !== handles.size || [...next.keys()].some((id) => !handles.has(id));
+    const contentChanged = content.revision !== lastContentRevision;
+    const registrationChanged = nativeDirty;
+    handles = next;
+    if (idsChanged || contentChanged || registrationChanged) {
+      nativeDirty = false;
       executionRevision += 1;
-      handles = next;
       lastContentRevision = content.revision;
       snapshot = Object.freeze({ revision: executionRevision, tools: content.tools });
       changes.emit(undefined);
@@ -89,6 +86,7 @@ export function createWebMCPSource(): ToolSource {
 
   try {
     detachToolChange = listenForToolChange(getNativeContext(), () => {
+      nativeDirty = true;
       void discover().catch(() => {});
     });
   } catch (error) {

@@ -96,6 +96,23 @@ it('adds, removes, and replaces tools during a session', async () => {
   source.dispose();
 });
 
+it('keeps the execution revision when getTools returns new wrapper objects', async () => {
+  const currentWindow = {};
+  const context = new FakeContext();
+  install(context, currentWindow);
+  context.getTools = async () => [echo(currentWindow)];
+  const source = createWebMCPSource();
+  const first = await source.discover();
+  const second = await source.discover();
+  expect(second.revision).toBe(first.revision);
+  const result = await source.execute(
+    { id: 'c1', toolId: 'echo', arguments: { text: 'Phoenix' } },
+    first.revision,
+  );
+  expect(result.ok).toBe(true);
+  source.dispose();
+});
+
 it('does not reuse authority when a name is registered again', async () => {
   const currentWindow = {};
   const context = new FakeContext();
@@ -111,6 +128,7 @@ it('does not reuse authority when a name is registered again', async () => {
   const firstSnapshot = await source.discover();
   const second = echo(currentWindow);
   context.tools = [second];
+  context.dispatchEvent(new Event('toolchange'));
   const nextSnapshot = await source.discover();
   expect(nextSnapshot.revision).toBeGreaterThan(firstSnapshot.revision);
   const stale = await source.execute(
