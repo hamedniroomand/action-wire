@@ -1,4 +1,6 @@
-import type { Assistant } from '@webmcp-agent/core';
+import type { Assistant, AssistantState } from '@webmcp-agent/core';
+
+import { attachShell } from '~/shell';
 
 export const TAG = 'webmcp-assistant';
 
@@ -8,12 +10,18 @@ export function defineAssistantElement(): void {
   if (customElements.get(TAG) !== undefined) return;
   class AssistantElement extends HTMLElement {
     #unsubscribe: (() => void) | undefined;
+    #sync: ((state: AssistantState) => void) | undefined;
 
     connectedCallback() {
-      if (this.shadowRoot === null) this.attachShadow({ mode: 'open' });
       const session = sessions.get(this);
+      if (session === undefined) return;
+      const shadow = this.shadowRoot ?? this.attachShadow({ mode: 'open' });
+      this.#sync ??= attachShell(shadow, session.assistant);
       this.#unsubscribe?.();
-      this.#unsubscribe = session?.assistant.subscribe(() => {});
+      this.#unsubscribe = session.assistant.subscribe((state) => {
+        this.#sync?.(state);
+      });
+      this.#sync(session.assistant.getState());
     }
 
     disconnectedCallback() {
