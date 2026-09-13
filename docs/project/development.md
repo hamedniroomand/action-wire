@@ -74,13 +74,12 @@ pnpm build
 
 ## Working on this site
 
-The docs are a separate package with their own install. They are not part of the
-root pnpm workspace, so a root `pnpm build` does not build the site.
+The site is a VitePress package in `docs`. It is part of the pnpm workspace, so
+a root `pnpm install` installs it. A root `pnpm build` builds the library only.
 
 ```sh
-cd docs
-pnpm install
-pnpm dev
+pnpm --filter action-wire-docs dev
+pnpm docs:build
 ```
 
 Pages are Markdown. The directory name sets the section, and the file path sets

@@ -16,7 +16,7 @@ Voice is out of scope. The assistant does not persist conversation history acros
 
 - Node.js 22.12+ in the 22 release line, Node.js 24, or Node.js 26+.
 - pnpm 12.4.1 for this repository.
-- A secure browser context with native `document.modelContext`. See [compatibility](docs/3.project/3.compatibility.md).
+- A secure browser context with native `document.modelContext`. Chromium 153 with `--enable-experimental-web-platform-features` is the verified environment. See [compatibility](docs/project/compatibility.md).
 
 ## Install
 
@@ -24,11 +24,11 @@ Voice is out of scope. The assistant does not persist conversation history acros
 npm install action-wire
 ```
 
-One package holds the widget, the headless bridge, the WebMCP source, the model adapter, and the types. Its only runtime dependency is `@cfworker/json-schema`, which validates tool input without `eval`, so the widget works under a strict Content-Security-Policy.
+One package holds the widget, the headless bridge, the WebMCP source, the model adapter, and the types. It is ESM only. Its only runtime dependency is `@cfworker/json-schema`, which validates tool input without `eval`, so the widget works under a strict Content-Security-Policy.
 
 ## Quick start
 
-See the [quickstart](docs/1.guide/04.quickstart.md).
+See the [quickstart](docs/guide/quickstart.md).
 
 ```ts
 import { createAssistant, openAICompatible } from 'action-wire';
@@ -43,31 +43,54 @@ Register tools on the page with native WebMCP before discovery. Keep model crede
 
 ## Exports
 
-`createAssistant` mounts the widget. `createAgentBridge` is the same runtime with no interface. `createWebMCPSource` reads the tools on the page. `openAICompatible` talks to your model endpoint. `AgentError` carries every failure code.
+`createAssistant` mounts the widget. `createAgentBridge` is the same runtime with no interface. `createWebMCPSource` reads the tools on the page. `openAICompatible` talks to your model endpoint. `AgentError` carries every failure code. The types come from the same entry point.
 
 Inside `packages/action-wire/src` the code keeps four layers: `core`, `webmcp`, `agent`, and `widget`. They import in one direction only, and a lint rule enforces it.
 
 ## Examples
 
-- `examples/vanilla`
-- `examples/react`
-- `examples/vue`
-- `examples/svelte`
+Each example has its own README with the port and the run command.
+
+- [`examples/vanilla`](examples/vanilla/README.md)
+- [`examples/react`](examples/react/README.md)
+- [`examples/vue`](examples/vue/README.md)
+- [`examples/svelte`](examples/svelte/README.md)
 - `playground`: project dashboard used by the journey test.
+
+An example loads the built package, so run `pnpm build` before `pnpm vanilla:dev` or any of the others.
+
+## Develop
+
+```sh
+pnpm install
+pnpm build
+pnpm test
+```
+
+`pnpm test:e2e` runs the Playwright suites. `pnpm test:native` runs the checks that need flagged Chromium; it fails when the API is absent instead of skipping. Read [development](docs/project/development.md) for the rest.
 
 ## Documentation
 
-The full site is in [`docs/`](docs). Run it with `cd docs && pnpm install && pnpm dev`.
+The site is a VitePress project in [`docs/`](docs). Run it from the repository root:
 
-- [Introduction](docs/1.guide/01.index.md): what this is and who it helps.
-- [Browser setup](docs/1.guide/03.browser-setup.md): the Chrome flag, on every system.
-- [Quickstart](docs/1.guide/04.quickstart.md)
-- [Without native WebMCP](docs/1.guide/07.without-webmcp.md)
-- [Troubleshooting](docs/1.guide/10.troubleshooting.md)
-- [API reference](docs/2.reference/1.index.md)
-- [Architecture](docs/3.project/2.architecture.md)
-- [Compatibility](docs/3.project/3.compatibility.md)
-- [Development](docs/3.project/4.development.md)
+```sh
+pnpm --filter action-wire-docs dev
+```
+
+- [Introduction](docs/guide/index.md): what this is and who it helps.
+- [Installation](docs/guide/installation.md)
+- [Browser setup](docs/guide/browser-setup.md): the Chrome flag, on every system.
+- [Quickstart](docs/guide/quickstart.md)
+- [Model endpoint](docs/guide/model-endpoint.md): the server you operate.
+- [Confirmations](docs/guide/confirmations.md): how a destructive tool is approved.
+- [Without native WebMCP](docs/guide/without-webmcp.md)
+- [Frameworks](docs/guide/frameworks.md)
+- [Styling](docs/guide/styling.md)
+- [Troubleshooting](docs/guide/troubleshooting.md)
+- [API reference](docs/reference/index.md)
+- [Architecture](docs/project/architecture.md)
+- [Compatibility](docs/project/compatibility.md)
+- [Development](docs/project/development.md)
 - [Contributing](CONTRIBUTING.md)
 
 ## License

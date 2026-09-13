@@ -2,7 +2,7 @@
 
 ## 0.1.0 - 2026-09-13
 
-First MVP release. Not published to npm until package-name ownership is confirmed. See [docs/3.project/5.release-checklist.md](docs/3.project/5.release-checklist.md).
+First MVP release.
 
 ### Added
 

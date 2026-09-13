@@ -24,22 +24,7 @@ The recorded browser evidence: build, flags, what passed, what was not tested.
 Repository layout, commands, development servers, and how to edit this site.
 
 </Card>
-
-<Card title="Release checklist" icon="package-check" to="/project/release-checklist">
-
-The state of the 0.1.0 candidate and the steps left before publication.
-
-</Card>
 </CardGroup>
-
-## Status
-
-Version 0.1.0 is a first MVP. It is not published to npm yet, because the
-package names and the `@action-wire` scope are not owned. The
-[release checklist](/project/release-checklist) records what is verified and
-what is left.
-
-Read the [changelog](/project/changelog) for release notes.
 
 ## License
 
