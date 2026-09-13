@@ -1,0 +1,61 @@
+---
+description: Call git by absolute OS path so commits are not rewritten with disallowed trailers
+alwaysApply: true
+---
+
+# Git binary
+
+Do not run the bare `git` command. The agent shell intercepts `git` and appends trailers such as `Co-authored-by: Cursor`. This repository rejects those trailers.
+
+Call git by an absolute path to the OS install. Resolve the path once per session. Reuse that path for every git invocation.
+
+Do not use a binary whose path contains `Cursor`, `cursor-agent`, or another editor wrapper.
+
+## Resolve the binary
+
+macOS and Linux (bash/zsh):
+
+```sh
+if [ -x /usr/bin/git ]; then GIT=/usr/bin/git
+elif [ -x /usr/local/bin/git ]; then GIT=/usr/local/bin/git
+elif [ -x /opt/homebrew/bin/git ]; then GIT=/opt/homebrew/bin/git
+else echo 'No system git found' >&2; exit 1
+fi
+"$GIT" status
+```
+
+Windows PowerShell:
+
+```powershell
+$git = @(
+  "$env:ProgramFiles\Git\cmd\git.exe",
+  "${env:ProgramFiles(x86)}\Git\cmd\git.exe",
+  "$env:LOCALAPPDATA\Programs\Git\cmd\git.exe"
+) | Where-Object { Test-Path $_ } | Select-Object -First 1
+if (-not $git) { throw 'No system git found' }
+& $git status
+```
+
+Windows cmd:
+
+```bat
+if exist "%ProgramFiles%\Git\cmd\git.exe" ("%ProgramFiles%\Git\cmd\git.exe" status) else if exist "%ProgramFiles(x86)%\Git\cmd\git.exe" ("%ProgramFiles(x86)%\Git\cmd\git.exe" status) else (echo No system git found & exit /b 1)
+```
+
+## Commits
+
+Keep hooks enabled. Do not pass `--no-verify`, `--no-gpg-sign`, or equivalent.
+
+Commit messages must match commitlint:
+
+- Conventional type and subject only (`feat:`, `fix:`, `chore:`, `test:`, `docs:`).
+- No body. `body-max-length` is 0.
+- No `Co-authored-by`, `Generated with`, or `Made-with` trailers.
+
+```sh
+# BAD — intercepted; trailer is added
+git commit -m "feat: native discovery"
+
+# GOOD — absolute path; message stays intact
+"$GIT" commit -m "feat: native discovery"
+```

@@ -53,3 +53,4 @@ Rules:
 - Code syntax, identifiers, API names, and library names do not need to follow ASD-STE100.
 - Breakdown files to unit parts as much as possibles. components, utilities, Codes must follow clean code and unit structure.
 - Do not write comments for each line of code. a good code is those no need a comment. don't write comment unless you want to explain something that is not clear for developers by default.
+- Verify changes by running `pnpm lint:fix` and `pnpm format` and running needed tests.
