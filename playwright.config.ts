@@ -26,9 +26,20 @@ export default defineConfig({
       testMatch: '**/*.spec.ts',
       use: { browserName: 'chromium', baseURL: 'http://127.0.0.1:4174' },
     },
+    {
+      name: 'playground',
+      testDir: './playground/e2e',
+      testMatch: '**/*.spec.ts',
+      use: {
+        browserName: 'chromium',
+        baseURL: 'http://127.0.0.1:4175',
+        launchOptions: { args: ['--enable-experimental-web-platform-features'] },
+      },
+    },
   ],
   webServer: [
     { command: 'pnpm probe', url: 'http://127.0.0.1:4173', reuseExistingServer: false },
     { command: 'pnpm widget:dev', url: 'http://127.0.0.1:4174', reuseExistingServer: false },
+    { command: 'pnpm playground:dev', url: 'http://127.0.0.1:4175', reuseExistingServer: false },
   ],
 });

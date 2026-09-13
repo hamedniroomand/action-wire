@@ -1,3 +1,4 @@
+import { mountAssistant } from './assistant';
 import { createProjects } from './projects';
 import { registerDashboardTools } from './tools';
 
@@ -6,7 +7,11 @@ const root = document.querySelector('#app');
 if (!(root instanceof HTMLElement)) throw new Error('The app root is missing.');
 const app = root;
 
-void registerDashboardTools(projects).catch(() => {});
+void registerDashboardTools(projects)
+  .catch(() => undefined)
+  .finally(() => {
+    mountAssistant();
+  });
 
 function render(): void {
   app.replaceChildren(sidebar(), content());

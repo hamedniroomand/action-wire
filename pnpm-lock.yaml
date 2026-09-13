@@ -248,6 +248,15 @@ importers:
         specifier: workspace:*
         version: link:../webmcp
 
+  playground:
+    dependencies:
+      '@webmcp-agent/agent':
+        specifier: workspace:*
+        version: link:../packages/agent
+      '@webmcp-agent/core':
+        specifier: workspace:*
+        version: link:../packages/core
+
 packages:
 
   '@babel/code-frame@7.29.7':

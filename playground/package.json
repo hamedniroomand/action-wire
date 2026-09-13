@@ -3,5 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "license": "ISC",
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "@webmcp-agent/agent": "workspace:*",
+    "@webmcp-agent/core": "workspace:*"
+  }
 }

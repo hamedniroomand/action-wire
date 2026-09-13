@@ -18,7 +18,7 @@ type ToolSpec = {
   readOnly?: boolean;
   consequential?: boolean;
   inputSchema: object;
-  run: (projects: Projects, input: Record<string, unknown>) => { text: string };
+  run: (projects: Projects, input: Record<string, unknown>) => Promise<{ text: string }>;
 };
 
 const OBJECT = { type: 'object', additionalProperties: false } as const;
@@ -47,7 +47,7 @@ const GLOBAL_TOOLS: readonly ToolSpec[] = [
     description: 'List active projects, latest first.',
     readOnly: true,
     inputSchema: OBJECT,
-    run: (projects) => ({
+    run: async (projects) => ({
       text: projects
         .list()
         .map((project) => project.name)
@@ -59,8 +59,9 @@ const GLOBAL_TOOLS: readonly ToolSpec[] = [
     description: 'Open a project by id.',
     readOnly: true,
     inputSchema: ID,
-    run: (projects, input) => {
+    run: async (projects, input) => {
       const project = projects.openProject(readString(input, 'id'));
+      await flushTools();
       return { text: `Opened ${project.name}` };
     },
   },
@@ -68,7 +69,7 @@ const GLOBAL_TOOLS: readonly ToolSpec[] = [
     name: 'createProject',
     description: 'Create a project.',
     inputSchema: NAME,
-    run: (projects, input) => {
+    run: async (projects, input) => {
       const project = projects.createProject(readString(input, 'name'));
       return { text: `Created ${project.name}` };
     },
@@ -78,8 +79,9 @@ const GLOBAL_TOOLS: readonly ToolSpec[] = [
     description: 'Open the billing view.',
     readOnly: true,
     inputSchema: OBJECT,
-    run: (projects) => {
+    run: async (projects) => {
       projects.openBilling();
+      await flushTools();
       return { text: 'Opened billing' };
     },
   },
@@ -90,7 +92,7 @@ const CONTEXTUAL_TOOLS: readonly ToolSpec[] = [
     name: 'renameProject',
     description: 'Rename a project.',
     inputSchema: RENAME,
-    run: (projects, input) => {
+    run: async (projects, input) => {
       const project = projects.renameProject(readString(input, 'id'), readString(input, 'name'));
       return { text: `Renamed to ${project.name}` };
     },
@@ -99,7 +101,7 @@ const CONTEXTUAL_TOOLS: readonly ToolSpec[] = [
     name: 'archiveProject',
     description: 'Archive a project.',
     inputSchema: ID,
-    run: (projects, input) => {
+    run: async (projects, input) => {
       const project = projects.archiveProject(readString(input, 'id'));
       return { text: `Archived ${project.name}` };
     },
@@ -109,14 +111,17 @@ const CONTEXTUAL_TOOLS: readonly ToolSpec[] = [
     description: 'Delete a project. This action cannot be undone.',
     consequential: true,
     inputSchema: ID,
-    run: (projects, input) => {
+    run: async (projects, input) => {
       const id = readString(input, 'id');
       const project = projects.get(id);
       projects.deleteProject(id);
+      await flushTools();
       return { text: `Deleted ${project.name}` };
     },
   },
 ];
+
+let flushTools: () => Promise<void> = async () => {};
 
 export async function registerDashboardTools(projects: Projects): Promise<() => void> {
   const context = nativeContext();
@@ -127,9 +132,16 @@ export async function registerDashboardTools(projects: Projects): Promise<() => 
   async function syncContextual(): Promise<void> {
     contextual.abort();
     contextual = new AbortController();
+    const signal = contextual.signal;
     if (projects.route().name !== 'details') return;
-    await registerTools(context, projects, CONTEXTUAL_TOOLS, contextual.signal);
+    try {
+      await registerTools(context, projects, CONTEXTUAL_TOOLS, signal);
+    } catch (error) {
+      if (signal.aborted || isAbort(error)) return;
+      throw error;
+    }
   }
+  flushTools = syncContextual;
 
   const stop = projects.subscribe(() => {
     void syncContextual();
@@ -137,6 +149,7 @@ export async function registerDashboardTools(projects: Projects): Promise<() => 
   await syncContextual();
   return () => {
     stop();
+    flushTools = async () => {};
     global.abort();
     contextual.abort();
   };
@@ -191,6 +204,10 @@ function asRecord(value: unknown): Record<string, unknown> {
     return Object.fromEntries(Object.entries(value));
   }
   return {};
+}
+
+function isAbort(error: unknown): boolean {
+  return typeof error === 'object' && error !== null && Reflect.get(error, 'name') === 'AbortError';
 }
 
 function readString(input: Record<string, unknown>, key: string): string {
