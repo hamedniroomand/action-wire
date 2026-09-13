@@ -3,7 +3,9 @@
   "compilerOptions": {
     "lib": ["ES2023"],
     "types": ["node"],
-    "noEmit": true
+    "noEmit": true,
+    // Node runs index.ts directly, so its relative import needs a real extension.
+    "allowImportingTsExtensions": true
   },
   "include": ["./**/*.ts"]
 }

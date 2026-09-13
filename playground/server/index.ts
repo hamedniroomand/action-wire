@@ -6,7 +6,7 @@ import {
   MAX_BODY_BYTES,
   type AssistantEnv,
   type FetchLike,
-} from './assistant';
+} from './assistant.ts';
 
 export function createAssistantServer(
   env: AssistantEnv = process.env,

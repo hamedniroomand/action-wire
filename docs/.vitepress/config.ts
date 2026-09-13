@@ -115,8 +115,6 @@ export default defineConfig({
             link('network', 'Architecture', '/project/architecture'),
             link('badge-check', 'Compatibility', '/project/compatibility'),
             link('hammer', 'Development', '/project/development'),
-            link('package-check', 'Release checklist', '/project/release-checklist'),
-            link('history', 'Changelog', '/project/changelog'),
           ],
         },
       ],

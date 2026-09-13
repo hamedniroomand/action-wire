@@ -3,7 +3,8 @@
   "compilerOptions": {
     "lib": ["ES2023", "DOM"],
     "types": ["node"],
-    "noEmit": true
+    "noEmit": true,
+    "allowImportingTsExtensions": true
   },
   "include": [
     "playground/compatibility/*.spec.ts",
