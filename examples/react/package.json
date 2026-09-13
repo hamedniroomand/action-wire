@@ -2,6 +2,7 @@
   "name": "example-react",
   "version": "0.1.0",
   "private": true,
+  "description": "React example host for Action Wire.",
   "license": "MIT",
   "type": "module",
   "scripts": {

@@ -2,6 +2,7 @@
   "name": "example-vanilla",
   "version": "0.1.0",
   "private": true,
+  "description": "Vanilla JavaScript example host for Action Wire.",
   "license": "MIT",
   "type": "module",
   "dependencies": {

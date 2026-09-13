@@ -2,6 +2,7 @@
   "name": "example-svelte",
   "version": "0.1.0",
   "private": true,
+  "description": "Svelte example host for Action Wire.",
   "license": "MIT",
   "type": "module",
   "scripts": {

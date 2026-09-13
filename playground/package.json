@@ -2,6 +2,7 @@
   "name": "playground",
   "version": "0.1.0",
   "private": true,
+  "description": "Project dashboard used by the Action Wire journey test.",
   "license": "MIT",
   "type": "module",
   "scripts": {
