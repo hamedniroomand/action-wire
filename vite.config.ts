@@ -5,8 +5,10 @@ import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 
 const src = fileURLToPath(new URL('packages/action-wire/src/', import.meta.url));
+const assets = fileURLToPath(new URL('assets', import.meta.url));
 
 export default defineConfig({
+  publicDir: assets,
   resolve: {
     tsconfigPaths: true,
     alias: { 'action-wire': path.join(src, 'index.ts') },

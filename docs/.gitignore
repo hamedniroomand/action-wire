@@ -1,4 +1,5 @@
 node_modules
 dist
 .output
-.docs
+.docs/*
+!.docs/public

@@ -5,10 +5,12 @@ import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { defineConfig } from 'vite';
 
 const root = fileURLToPath(new URL('.', import.meta.url));
+const assets = fileURLToPath(new URL('../../assets', import.meta.url));
 const packages = fileURLToPath(new URL('../../packages', import.meta.url));
 
 export default defineConfig({
   root,
+  publicDir: assets,
   plugins: [svelte()],
   resolve: {
     alias: {
