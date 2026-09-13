@@ -24,12 +24,14 @@ Use `pnpm playground:dev` for the dashboard. Use `pnpm widget:dev` for the fixtu
 
 Use a conventional type and subject only (`feat:`, `fix:`, `chore:`, `test:`, `docs:`). Do not add a body. Do not add `Co-authored-by` trailers. Call the system `git` binary. Do not skip hooks.
 
-## Packages
+## Package
 
-Build order is core, then webmcp and agent, then widget:
+Everything publishes as one package, `packages/action-wire`:
 
 ```sh
-pnpm --filter ./packages/core --filter ./packages/webmcp --filter ./packages/agent --filter ./packages/widget build
+pnpm build
 ```
 
-Do not add React, Vue, Svelte, or voice dependencies to `packages/core`, `packages/webmcp`, `packages/agent`, or `packages/widget`.
+Do not add React, Vue, Svelte, or voice dependencies to it.
+
+Its `src` keeps four layers: `core`, `webmcp`, `agent`, and `widget`. They import in one direction only, and an oxlint rule fails the build if a lower layer reaches up.

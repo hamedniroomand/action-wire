@@ -8,23 +8,22 @@ Voice is out of scope. The assistant does not persist conversation history acros
 
 - Node.js 22.12+ in the 22 release line, Node.js 24, or Node.js 26+.
 - pnpm 12.4.1 for this repository.
-- A secure browser context with native `document.modelContext`. See [compatibility](docs/3.project/2.compatibility.md).
+- A secure browser context with native `document.modelContext`. See [compatibility](docs/3.project/3.compatibility.md).
 
 ## Install
 
 ```sh
-npm install action-wire @action-wire/agent
+npm install action-wire
 ```
 
-Publish order is `@action-wire/core`, then `@action-wire/webmcp` and `@action-wire/agent`, then `action-wire`.
+One package holds the widget, the headless bridge, the WebMCP source, the model adapter, and the types. Its only runtime dependency is `ajv`.
 
 ## Quick start
 
-See the [quickstart](docs/1.guide/4.quickstart.md).
+See the [quickstart](docs/1.guide/04.quickstart.md).
 
 ```ts
-import { openAICompatible } from '@action-wire/agent';
-import { createAssistant } from 'action-wire';
+import { createAssistant, openAICompatible } from 'action-wire';
 
 const assistant = createAssistant({
   model: openAICompatible({ endpoint: '/api/assistant' }),
@@ -34,12 +33,11 @@ assistant.mount();
 
 Register tools on the page with native WebMCP before discovery. Keep model credentials on a Node.js endpoint. Do not put API keys in browser code.
 
-## Packages
+## Exports
 
-- `@action-wire/core`: types, registry, events, errors.
-- `@action-wire/webmcp`: native discovery and execution.
-- `@action-wire/agent`: headless bridge and OpenAI-compatible adapter.
-- `action-wire`: Web Component widget facade.
+`createAssistant` mounts the widget. `createAgentBridge` is the same runtime with no interface. `createWebMCPSource` reads the tools on the page. `openAICompatible` talks to your model endpoint. `AgentError` carries every failure code.
+
+Inside `packages/action-wire/src` the code keeps four layers: `core`, `webmcp`, `agent`, and `widget`. They import in one direction only, and a lint rule enforces it.
 
 ## Examples
 
@@ -53,15 +51,15 @@ Register tools on the page with native WebMCP before discovery. Keep model crede
 
 The full site is in [`docs/`](docs). Run it with `cd docs && pnpm install && pnpm dev`.
 
-- [Introduction](docs/1.guide/1.index.md): what this is and who it helps.
-- [Browser setup](docs/1.guide/3.browser-setup.md): the Chrome flag, on every system.
-- [Quickstart](docs/1.guide/4.quickstart.md)
-- [Without native WebMCP](docs/1.guide/7.without-webmcp.md)
+- [Introduction](docs/1.guide/01.index.md): what this is and who it helps.
+- [Browser setup](docs/1.guide/03.browser-setup.md): the Chrome flag, on every system.
+- [Quickstart](docs/1.guide/04.quickstart.md)
+- [Without native WebMCP](docs/1.guide/07.without-webmcp.md)
 - [Troubleshooting](docs/1.guide/10.troubleshooting.md)
 - [API reference](docs/2.reference/1.index.md)
-- [Architecture](docs/3.project/1.architecture.md)
-- [Compatibility](docs/3.project/2.compatibility.md)
-- [Development](docs/3.project/3.development.md)
+- [Architecture](docs/3.project/2.architecture.md)
+- [Compatibility](docs/3.project/3.compatibility.md)
+- [Development](docs/3.project/4.development.md)
 - [Contributing](CONTRIBUTING.md)
 
 ## License

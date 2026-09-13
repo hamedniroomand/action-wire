@@ -22,7 +22,7 @@ From the repository root:
 
 ```sh
 pnpm install
-pnpm --filter ./packages/core --filter ./packages/webmcp --filter ./packages/agent --filter ./packages/widget build
+pnpm build
 pnpm vanilla:dev
 ```
 

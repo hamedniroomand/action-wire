@@ -26,7 +26,7 @@ landing:
     lang: ts
     title: app.ts
     content: |
-      import { openAICompatible } from '@action-wire/agent'
+      import { openAICompatible } from 'action-wire'
       import { createAssistant } from 'action-wire'
 
       createAssistant({

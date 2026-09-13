@@ -22,7 +22,7 @@ node playground/server/index.ts
 
 ```sh
 pnpm install
-pnpm --filter ./packages/core --filter ./packages/webmcp --filter ./packages/agent --filter ./packages/widget build
+pnpm build
 pnpm react:dev
 ```
 

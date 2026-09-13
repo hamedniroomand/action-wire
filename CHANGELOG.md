@@ -2,14 +2,14 @@
 
 ## 0.1.0 - 2026-09-13
 
-First MVP release. Not published to npm until package-name ownership is confirmed. See [docs/3.project/4.release-checklist.md](docs/3.project/4.release-checklist.md).
+First MVP release. Not published to npm until package-name ownership is confirmed. See [docs/3.project/5.release-checklist.md](docs/3.project/5.release-checklist.md).
 
 ### Added
 
-- `@action-wire/core`: shared types, registry, events, and errors.
-- `@action-wire/webmcp`: native `document.modelContext` discovery and execution.
-- `@action-wire/agent`: headless bridge and OpenAI-compatible Node endpoint adapter.
-- `action-wire`: Web Component widget with confirmation, tool cards, and session UI.
+- `action-wire`: one package holding the shared types and tool registry, native
+  `document.modelContext` discovery and execution, the headless bridge with an
+  OpenAI-compatible endpoint adapter, and the Web Component widget with
+  confirmation, tool cards, and the session interface.
 - Playground project dashboard with single-source WebMCP tools.
 - Vanilla JavaScript, React, Vue, and Svelte examples.
 - Playwright native gate, failure matrix, and package smoke install.
