@@ -191,3 +191,48 @@ it('does not dispatch later tool calls after cancel', async () => {
   expect(assistant.getState().busy).toBe(false);
   assistant.dispose();
 });
+
+it('records TIMEOUT when the model hang exceeds timeoutMs', async () => {
+  const assistant = createAgentBridge({
+    source: source(async (call) => ({ callId: call.id, ok: true, text: '' })),
+    model: {
+      generate: ({ signal }) =>
+        new Promise((_, reject) => {
+          const fail = () => reject(signal?.reason ?? new Error('aborted'));
+          if (signal?.aborted) {
+            fail();
+            return;
+          }
+          signal?.addEventListener('abort', fail, { once: true });
+        }),
+    },
+    timeoutMs: 20,
+  });
+  await assistant.send('Hello');
+  expect(assistant.getState().error?.code).toBe('TIMEOUT');
+  assistant.dispose();
+});
+
+it('records ABORTED when cancel stops the model', async () => {
+  const generate = vi.fn(
+    ({ signal }: { signal?: AbortSignal }) =>
+      new Promise<never>((_resolve, reject) => {
+        const fail = () => reject(signal?.reason ?? new Error('aborted'));
+        if (signal?.aborted) {
+          fail();
+          return;
+        }
+        signal?.addEventListener('abort', fail, { once: true });
+      }),
+  );
+  const assistant = createAgentBridge({
+    source: source(async (call) => ({ callId: call.id, ok: true, text: '' })),
+    model: { generate },
+  });
+  const sending = assistant.send('Hello');
+  await vi.waitFor(() => expect(generate).toHaveBeenCalled());
+  assistant.cancel();
+  await sending;
+  expect(assistant.getState().error?.code).toBe('ABORTED');
+  assistant.dispose();
+});

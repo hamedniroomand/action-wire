@@ -66,6 +66,32 @@ export default defineConfig({
         launchOptions: { args: ['--enable-experimental-web-platform-features'] },
       },
     },
+    {
+      name: 'e2e-failures',
+      testDir: './tests/e2e',
+      testMatch: 'failures.spec.ts',
+      use: { browserName: 'chromium', baseURL: 'http://127.0.0.1:4174' },
+    },
+    {
+      name: 'e2e-frameworks',
+      testDir: './tests/e2e',
+      testMatch: 'frameworks.spec.ts',
+      use: {
+        browserName: 'chromium',
+        baseURL: 'http://127.0.0.1:4174',
+        launchOptions: { args: ['--enable-experimental-web-platform-features'] },
+      },
+    },
+    {
+      name: 'e2e-native',
+      testDir: './tests/e2e',
+      testMatch: 'native-webmcp.spec.ts',
+      use: {
+        browserName: 'chromium',
+        baseURL: 'http://127.0.0.1:4175',
+        launchOptions: { args: ['--enable-experimental-web-platform-features'] },
+      },
+    },
   ],
   webServer: [
     { command: 'pnpm probe', url: 'http://127.0.0.1:4173', reuseExistingServer: false },

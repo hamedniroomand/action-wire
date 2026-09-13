@@ -320,5 +320,11 @@ function isTimeout(value: unknown): boolean {
 
 function toStateError(error: unknown): { code: ErrorCode; message: string } {
   if (error instanceof AgentError) return { code: error.code, message: error.message };
+  if (isTimeout(error)) return { code: 'TIMEOUT', message: 'The assistant timed out.' };
+  if (isAbortError(error)) return { code: 'ABORTED', message: 'The assistant was cancelled.' };
   return { code: 'MODEL_ERROR', message: 'The assistant turn failed.' };
+}
+
+function isAbortError(error: unknown): boolean {
+  return typeof error === 'object' && error !== null && Reflect.get(error, 'name') === 'AbortError';
 }
