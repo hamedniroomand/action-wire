@@ -31,7 +31,10 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build
-      - run: pnpm publish --access public --provenance --no-git-checks
+      # Token-less publishing through npm Trusted Publishing (OIDC). The
+      # package settings on npmjs.com must list this repository and this
+      # workflow file as a trusted publisher; no NPM_TOKEN secret is used.
+      # OIDC publishing needs npm 11.5.1 or newer.
+      - run: npm install -g npm@latest
+      - run: npm publish --provenance --access public
         working-directory: packages/action-wire
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
