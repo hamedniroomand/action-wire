@@ -35,6 +35,7 @@
     "vue:dev": "vite --config examples/vue/vite.config.ts",
     "svelte:dev": "vite --config examples/svelte/vite.config.ts",
     "test:native": "playwright test --project chromium-webmcp --project e2e-native --grep \"native\"",
+    "docs:dev": "pnpm --filter action-wire-docs dev",
     "docs:build": "pnpm --filter action-wire-docs build"
   },
   "devDependencies": {
