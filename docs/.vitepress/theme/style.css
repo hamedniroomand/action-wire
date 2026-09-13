@@ -1,0 +1,449 @@
+/**
+ * Action Wire brand skin for the VitePress default theme.
+ *
+ * The palette is sampled from `assets/logo.png`: a cyan-to-violet gradient
+ * through the product blue, on the near-black navy the mark sits on. The blue
+ * matches `--aw-color-accent` in the widget, so the docs and the widget do not
+ * drift apart.
+ */
+
+:root {
+  --aw-cyan: #48e1fd;
+  --aw-blue: #2566f0;
+  --aw-violet: #8d71fd;
+  --aw-gradient: linear-gradient(
+    120deg,
+    var(--aw-cyan) 0%,
+    var(--aw-blue) 48%,
+    var(--aw-violet) 100%
+  );
+
+  --vp-c-brand-1: #1b4fd6;
+  --vp-c-brand-2: #2566f0;
+  --vp-c-brand-3: #2566f0;
+  --vp-c-brand-soft: rgb(37 102 240 / 12%);
+
+  --vp-c-tip-1: var(--vp-c-brand-1);
+  --vp-c-tip-2: var(--vp-c-brand-2);
+  --vp-c-tip-3: var(--vp-c-brand-3);
+  --vp-c-tip-soft: var(--vp-c-brand-soft);
+
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: var(--aw-gradient);
+  --vp-home-hero-image-background-image: var(--aw-gradient);
+  --vp-home-hero-image-filter: blur(52px);
+
+  --vp-button-brand-border: transparent;
+  --vp-button-brand-bg: var(--aw-blue);
+  --vp-button-brand-hover-bg: #1b4fd6;
+  --vp-button-brand-active-bg: #1740b4;
+}
+
+.dark {
+  --vp-c-brand-1: #8ab4ff;
+  --vp-c-brand-2: #4b7ff5;
+  --vp-c-brand-3: #2566f0;
+  --vp-c-brand-soft: rgb(90 140 255 / 16%);
+
+  --vp-c-bg: #070b1a;
+  --vp-c-bg-alt: #04060f;
+  --vp-c-bg-elv: #0c1226;
+  --vp-c-bg-soft: #0c1226;
+
+  --vp-c-divider: rgb(126 152 214 / 16%);
+  --vp-c-border: rgb(126 152 214 / 22%);
+  --vp-c-gutter: rgb(126 152 214 / 12%);
+
+  --vp-home-hero-image-filter: blur(64px);
+}
+
+/* Brand */
+
+.VPNavBarTitle .logo {
+  border-radius: 7px;
+}
+
+.VPHero .name {
+  letter-spacing: -0.02em;
+}
+
+.VPButton.brand {
+  background: var(--aw-gradient);
+  background-size: 160% 100%;
+  transition:
+    background-position 220ms ease,
+    box-shadow 220ms ease;
+}
+
+.VPButton.brand:hover {
+  background-position: 100% 0;
+  box-shadow: 0 6px 20px rgb(37 102 240 / 35%);
+}
+
+.VPFeature .icon {
+  background: var(--vp-c-brand-soft);
+  color: var(--vp-c-brand-1);
+}
+
+.VPFeature:hover {
+  border-color: var(--vp-c-brand-soft);
+}
+
+/* A brand hairline under the nav bar keeps the header from floating. */
+.VPNav::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 1px;
+  background: var(--aw-gradient);
+  opacity: 0.28;
+}
+
+/* Icons */
+
+.aw-icon {
+  width: 1em;
+  height: 1em;
+  flex: none;
+}
+
+/* The default theme renders svg as a block, so make the row a flex line. */
+.VPSidebarItem .text {
+  display: flex;
+  align-items: center;
+}
+
+.VPSidebarItem .text .aw-icon {
+  width: 15px;
+  height: 15px;
+  margin-right: 9px;
+  opacity: 0.65;
+}
+
+.VPSidebarItem.is-active > .item .text .aw-icon,
+.VPSidebarItem > .item:hover .text .aw-icon {
+  opacity: 1;
+}
+
+/* Code blocks: the fence label replaces the language badge, so keep it legible. */
+
+[class*='language-'] > span.lang {
+  color: var(--vp-c-text-3);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Custom blocks: an accent rail reads faster than a flat tint. */
+
+.vp-doc .custom-block {
+  border-left: 3px solid var(--vp-c-default-1);
+  border-radius: 4px 10px 10px 4px;
+}
+
+.vp-doc .custom-block.tip {
+  border-left-color: var(--vp-c-brand-2);
+}
+
+.vp-doc .custom-block.info,
+.vp-doc .custom-block.note {
+  border-left-color: var(--vp-c-default-1);
+}
+
+.vp-doc .custom-block.warning,
+.vp-doc .custom-block.caution {
+  border-left-color: var(--vp-c-warning-3);
+}
+
+.vp-doc .custom-block.danger,
+.vp-doc .custom-block.important {
+  border-left-color: var(--vp-c-danger-3);
+}
+
+/* Cards */
+
+.aw-card-group {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(var(--aw-cols, 2), minmax(0, 1fr));
+  margin: 24px 0;
+}
+
+@media (width <= 60rem) {
+  .aw-card-group {
+    grid-template-columns: 1fr;
+  }
+}
+
+.aw-card {
+  position: relative;
+  display: block;
+  padding: 20px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 14px;
+  background: var(--vp-c-bg-soft);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    border-color 200ms ease,
+    background 200ms ease,
+    transform 200ms ease;
+}
+
+/* These are surfaces, not prose links. Keep the doc link styling off them. */
+.vp-doc a.aw-card,
+.vp-doc a.aw-card:hover,
+.vp-doc a.aw-read-more,
+.vp-doc a.aw-read-more:hover {
+  color: inherit;
+  font-weight: inherit;
+  text-decoration: none;
+}
+
+.aw-card-link:hover {
+  border-color: var(--vp-c-brand-2);
+  transform: translateY(-2px);
+}
+
+.aw-card-glyph {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  margin-bottom: 14px;
+  border-radius: 10px;
+  background: var(--vp-c-brand-soft);
+  color: var(--vp-c-brand-1);
+}
+
+.aw-card-glyph .aw-icon {
+  width: 19px;
+  height: 19px;
+}
+
+.aw-card-title {
+  margin: 0 0 6px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--vp-c-text-1);
+}
+
+.aw-card-body {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--vp-c-text-2);
+}
+
+.aw-card-body > :first-child {
+  margin-top: 0;
+}
+
+.aw-card-body > :last-child {
+  margin-bottom: 0;
+}
+
+.aw-card-arrow {
+  position: absolute;
+  top: 22px;
+  right: 20px;
+  color: var(--vp-c-text-3);
+  opacity: 0;
+  transition:
+    opacity 200ms ease,
+    translate 200ms ease;
+}
+
+.aw-card-link:hover .aw-card-arrow {
+  color: var(--vp-c-brand-1);
+  opacity: 1;
+  translate: 3px 0;
+}
+
+.aw-card-arrow .aw-icon {
+  width: 17px;
+  height: 17px;
+}
+
+/* Steps */
+
+.aw-steps {
+  position: relative;
+  margin: 28px 0;
+  padding-left: 44px;
+  counter-reset: aw-step;
+}
+
+.aw-steps::before {
+  content: '';
+  position: absolute;
+  top: 14px;
+  bottom: 14px;
+  left: 15px;
+  width: 1px;
+  background: var(--vp-c-divider);
+}
+
+.vp-doc .aw-steps h3 {
+  position: relative;
+  margin: 32px 0 0 -44px;
+  padding-left: 44px;
+  font-size: 17px;
+  line-height: 32px;
+}
+
+.vp-doc .aw-steps > :first-child {
+  margin-top: 0;
+}
+
+.vp-doc .aw-steps h3::before {
+  content: counter(aw-step);
+  counter-increment: aw-step;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 50%;
+  background: var(--vp-c-bg);
+  color: var(--vp-c-brand-1);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Tabs */
+
+.aw-tabs {
+  margin: 24px 0;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 12px;
+  background: var(--vp-c-bg-soft);
+}
+
+.aw-tabs-list {
+  display: flex;
+  gap: 2px;
+  padding: 6px;
+  border-bottom: 1px solid var(--vp-c-divider);
+  overflow-x: auto;
+}
+
+.aw-tabs-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--vp-c-text-2);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    color 160ms ease;
+}
+
+.aw-tabs-tab:hover {
+  color: var(--vp-c-text-1);
+}
+
+.aw-tabs-tab-active,
+.aw-tabs-tab-active:hover {
+  background: var(--vp-c-bg);
+  color: var(--vp-c-brand-1);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 8%);
+}
+
+.aw-tabs-glyph .aw-icon {
+  width: 15px;
+  height: 15px;
+}
+
+.aw-tab {
+  padding: 4px 20px 16px;
+}
+
+.vp-doc .aw-tab > :first-child {
+  margin-top: 16px;
+}
+
+.vp-doc .aw-tab div[class*='language-'] {
+  margin: 16px 0;
+  border-radius: 8px;
+}
+
+/* Read more */
+
+.aw-read-more {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 28px 0;
+  padding: 14px 18px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 12px;
+  background: var(--vp-c-bg-soft);
+  text-decoration: none;
+  transition: border-color 200ms ease;
+}
+
+.aw-read-more:hover {
+  border-color: var(--vp-c-brand-2);
+}
+
+.aw-read-more-label {
+  color: var(--vp-c-text-3);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.aw-read-more-title {
+  color: var(--vp-c-brand-1);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.aw-read-more-arrow {
+  margin-left: auto;
+  color: var(--vp-c-text-3);
+  transition:
+    translate 200ms ease,
+    color 200ms ease;
+}
+
+.aw-read-more:hover .aw-read-more-arrow {
+  color: var(--vp-c-brand-1);
+  translate: 3px 0;
+}
+
+.aw-read-more-arrow .aw-icon {
+  width: 17px;
+  height: 17px;
+}
+
+/* Mermaid */
+
+.aw-mermaid {
+  display: flex;
+  justify-content: center;
+  margin: 28px 0;
+  padding: 24px 20px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 12px;
+  background: var(--vp-c-bg-soft);
+  overflow-x: auto;
+}
+
+.aw-mermaid svg {
+  max-width: 100%;
+  height: auto;
+}

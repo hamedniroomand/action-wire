@@ -10,5 +10,5 @@ playwright-report/
 test-results/
 *.tsbuildinfo
 .vitest/
-docs/.docs/*
-!docs/.docs/public
+docs/.vitepress/cache/
+docs/.vitepress/dist/

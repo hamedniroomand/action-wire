@@ -1,5 +1,4 @@
 node_modules
 dist
-.output
-.docs/*
-!.docs/public
+.vitepress/cache
+.vitepress/dist

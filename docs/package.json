@@ -13,10 +13,12 @@
   },
   "type": "module",
   "scripts": {
-    "dev": "undocs dev",
-    "build": "undocs build"
+    "dev": "vitepress dev",
+    "build": "vitepress build",
+    "preview": "vitepress preview"
   },
   "devDependencies": {
-    "undocs": "latest"
+    "mermaid": "^12.0.0",
+    "vitepress": "2.0.0-alpha.20"
   }
 }

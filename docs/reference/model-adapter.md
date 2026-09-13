@@ -1,0 +1,86 @@
+# Model adapter
+
+> `AgentAdapter` is one method. `openAICompatible` is the built-in implementation.
+
+```ts
+interface AgentAdapter {
+  generate(input: {
+    messages: readonly Message[];
+    tools: readonly ToolDefinition[];
+    signal?: AbortSignal;
+  }): Promise<AgentTurn>;
+}
+```
+
+`AgentTurn` is `{ text: string; toolCalls: ToolCall[] }`. Return an empty
+`toolCalls` array to end the turn with `text`.
+
+## openAICompatible
+
+```ts
+import { openAICompatible } from 'action-wire';
+
+const model = openAICompatible({ endpoint: '/api/assistant' });
+```
+
+| Option     | Type     | Meaning                                        |
+| ---------- | -------- | ---------------------------------------------- |
+| `endpoint` | `string` | URL on your own origin that holds the API key. |
+
+It POSTs JSON with the transcript and the discovered tools in OpenAI
+chat-completions shape, and reads the tool calls out of the response. It never
+holds a key. See [Model endpoint](/guide/model-endpoint).
+
+### Tool names
+
+Provider APIs restrict function names to `[a-zA-Z0-9_-]`, up to 64 characters.
+The adapter maps each tool to a safe provider name and maps the response back to
+your real tool id. Your tool names are not limited by that rule.
+
+### Errors it raises
+
+| Situation                            | Code          |
+| ------------------------------------ | ------------- |
+| Network failure, or a non-2xx status | `MODEL_ERROR` |
+| Response body is not JSON            | `MODEL_ERROR` |
+| The request was aborted              | `ABORTED`     |
+
+The browser is told only that the turn failed. Read your server log for the
+provider's message. This is deliberate: provider errors can contain the prompt,
+and sometimes the key.
+
+## Writing an adapter
+
+Use one when your provider does not speak the OpenAI shape, or when you want to
+add retries, logging, or a local model.
+
+```ts [adapter.ts]
+import { AgentError } from 'action-wire';
+import type { AgentAdapter } from 'action-wire';
+
+export function myModel(endpoint: string): AgentAdapter {
+  return {
+    async generate({ messages, tools, signal }) {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ messages, tools }),
+        ...(signal === undefined ? {} : { signal }),
+      });
+      if (!response.ok) throw new AgentError('MODEL_ERROR', 'The model request failed.');
+      const payload = await response.json();
+      return { text: payload.text ?? '', toolCalls: payload.toolCalls ?? [] };
+    },
+  };
+}
+```
+
+Rules:
+
+- Honour `signal`. The bridge uses it for `cancel()` and for `timeoutMs`.
+- Throw `AgentError('ABORTED', …)` on an abort, and `MODEL_ERROR` on anything
+  else. Other exceptions surface as a generic failure.
+- Every `ToolCall` you return needs a unique `id`, a `toolId` that matches a
+  discovered tool, and an `arguments` object.
+- Do not execute tools in the adapter. The bridge is the only execution path,
+  and it is where confirmation happens.
