@@ -110,3 +110,51 @@ function scriptedTurn(payload: unknown): object {
     ],
   };
 }
+
+test('discovers and runs native tools under a CSP that forbids eval', async ({ page }) => {
+  await page.route('**/*', async (route) => {
+    const request = route.request();
+    if (request.url().includes('/api/assistant') && request.method() === 'POST') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(scriptedTurn(request.postDataJSON())),
+      });
+      return;
+    }
+    const response = await route.fetch();
+    const headers: Record<string, string> = {
+      ...response.headers(),
+      // No 'unsafe-eval'. A validator that compiles schemas with `new Function`
+      // fails here, which is what strict hosts serve in production.
+      'content-security-policy': "script-src 'self' 'unsafe-inline'; object-src 'none'",
+    };
+    if (!(headers['content-type'] ?? '').includes('text/html')) {
+      await route.fulfill({ response, headers });
+      return;
+    }
+    // The probe must be parsed by the browser as part of the document, so the
+    // CSP applies to it. Script injected through the automation channel does not.
+    const body = (await response.text()).replace(
+      '</head>',
+      `<script>try{new Function('return 1')();window.__evalRan=true}catch{window.__evalRan=false}</script></head>`,
+    );
+    await route.fulfill({ response, headers, body });
+  });
+
+  const response = await page.goto('/');
+  expect(
+    response?.headers()['content-security-policy'],
+    'The CSP header must reach the page for this test to mean anything.',
+  ).toContain("script-src 'self'");
+
+  expect(await page.evaluate(() => Reflect.get(window, '__evalRan')), 'CSP must block eval.').toBe(
+    false,
+  );
+
+  await page.getByRole('button', { name: 'Open assistant' }).click();
+  await send(page, 'List my projects.');
+  await expect(
+    page.locator('action-wire').locator('.tool-status', { hasText: 'Success' }),
+  ).toBeVisible();
+});

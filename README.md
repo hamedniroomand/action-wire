@@ -24,7 +24,7 @@ Voice is out of scope. The assistant does not persist conversation history acros
 npm install action-wire
 ```
 
-One package holds the widget, the headless bridge, the WebMCP source, the model adapter, and the types. Its only runtime dependency is `ajv`.
+One package holds the widget, the headless bridge, the WebMCP source, the model adapter, and the types. Its only runtime dependency is `@cfworker/json-schema`, which validates tool input without `eval`, so the widget works under a strict Content-Security-Policy.
 
 ## Quick start
 

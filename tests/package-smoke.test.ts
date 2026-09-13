@@ -57,7 +57,7 @@ it('packs installable ESM packages without workspace aliases', () => {
 
     const installed = readPkg(path.join(consumer, 'node_modules/action-wire/package.json'));
     expect(JSON.stringify(installed)).not.toContain('workspace:');
-    expect(Object.keys(asRecord(installed['dependencies']))).toEqual(['ajv']);
+    expect(Object.keys(asRecord(installed['dependencies']))).toEqual(['@cfworker/json-schema']);
 
     const result = execFileSync(
       process.execPath,

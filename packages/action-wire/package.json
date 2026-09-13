@@ -24,9 +24,6 @@
   ],
   "type": "module",
   "sideEffects": false,
-  "imports": {
-    "#ajv/2020": "ajv/dist/2020.js"
-  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -38,6 +35,6 @@
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p test/tsconfig.json && tsc -p e2e/tsconfig.json"
   },
   "dependencies": {
-    "ajv": "^8.20.0"
+    "@cfworker/json-schema": "^4.1.1"
   }
 }

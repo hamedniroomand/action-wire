@@ -66,17 +66,7 @@ export function createWebMCPSource(): ToolSource {
       if (Reflect.get(entry, 'window') !== currentWindow) continue;
       current.push(normalizeNativeTool(entry));
     }
-    let content: ToolSnapshot;
-    try {
-      content = await registry.replace(current.map((item) => item.definition));
-    } catch (error) {
-      if (error instanceof AgentError) throw error;
-      throw new AgentError('DISCOVERY_FAILED', 'The schema validator could not load.', {
-        cause: error,
-      });
-    }
-    if (disposed) throw new AgentError('ABORTED', 'The tool source is disposed.');
-    if (!generation.isCurrent(token)) return (await inflight) ?? snapshot;
+    const content = registry.replace(current.map((item) => item.definition));
     const next = new Map(current.map((item) => [item.definition.id, item]));
     const idsChanged =
       next.size !== handles.size || [...next.keys()].some((id) => !handles.has(id));
