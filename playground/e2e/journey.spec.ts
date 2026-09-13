@@ -91,7 +91,7 @@ function scriptedTurn(payload: unknown, call: number): object {
   const content = isRecord(last) ? asText(last['content']) : '';
   if (isRecord(last) && last['role'] === 'tool') {
     if (content.includes('Orion') && content.includes('Phoenix')) {
-      return toolCall(call, 'openProject', { id: 'phoenix' });
+      return toolCall(call, 'openProject', { id: discoveredProjectId(messages) });
     }
     if (content.startsWith('Opened Phoenix'))
       return assistantText('I found Phoenix. Opening it now.');
@@ -103,9 +103,10 @@ function scriptedTurn(payload: unknown, call: number): object {
   }
   const user = lastUser(messages);
   if (/billing/i.test(user)) return toolCall(call, 'openBilling', {});
-  if (/delete/i.test(user)) return toolCall(call, 'deleteProject', { id: 'phoenix' });
+  if (/delete/i.test(user))
+    return toolCall(call, 'deleteProject', { id: discoveredProjectId(messages) });
   if (/rename|aurora/i.test(user)) {
-    return toolCall(call, 'renameProject', { id: 'phoenix', name: 'Aurora' });
+    return toolCall(call, 'renameProject', { id: discoveredProjectId(messages), name: 'Aurora' });
   }
   return toolCall(call, 'listProjects', {});
 }
@@ -147,4 +148,13 @@ function asText(value: unknown): string {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function discoveredProjectId(messages: unknown[]): string {
+  for (const message of messages) {
+    if (!isRecord(message) || message['role'] !== 'tool') continue;
+    const id = asText(message['content']).match(/\(id: ([^)]+)\)/)?.[1];
+    if (id !== undefined) return id;
+  }
+  throw new Error('The tool result did not provide a project ID.');
 }

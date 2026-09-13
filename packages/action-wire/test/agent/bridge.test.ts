@@ -236,3 +236,116 @@ it('records ABORTED when cancel stops the model', async () => {
   expect(assistant.getState().error?.code).toBe('ABORTED');
   assistant.dispose();
 });
+
+it('keeps a new turn active when the cleared turn finishes', async () => {
+  const signals: AbortSignal[] = [];
+  const assistant = createAgentBridge({
+    source: source(async (call) => ({ callId: call.id, ok: true, text: '' })),
+    model: {
+      generate: ({ signal }) =>
+        new Promise((_, reject) => {
+          if (signal === undefined) throw new Error('Missing signal');
+          signals.push(signal);
+          signal.addEventListener('abort', () => reject(signal.reason), { once: true });
+        }),
+    },
+  });
+  const first = assistant.send('First');
+  await vi.waitFor(() => expect(signals).toHaveLength(1));
+  assistant.clear();
+  const second = assistant.send('Second');
+  try {
+    await first;
+    await vi.waitFor(() => expect(signals).toHaveLength(2));
+    expect(assistant.getState().busy).toBe(true);
+    expect(assistant.getState().error).toBeUndefined();
+    expect(assistant.getState().messages).toEqual([{ role: 'user', content: 'Second' }]);
+    await expect(assistant.send('Third')).rejects.toMatchObject({ code: 'BUSY' });
+    assistant.cancel();
+    expect(signals.at(1)?.aborted).toBe(true);
+    await second;
+  } finally {
+    assistant.dispose();
+  }
+});
+
+it('ignores late model output after clear even if the adapter ignores abort', async () => {
+  let finish!: (value: { text: string; toolCalls: [] }) => void;
+  const assistant = createAgentBridge({
+    source: source(async (call) => ({ callId: call.id, ok: true, text: '' })),
+    model: {
+      generate: () =>
+        new Promise((resolve) => {
+          finish = resolve;
+        }),
+    },
+  });
+  const sending = assistant.send('Old request');
+  await vi.waitFor(() => expect(finish).toBeDefined());
+  assistant.clear();
+  finish({ text: 'Old answer', toolCalls: [] });
+  await sending;
+  expect(assistant.getState()).toMatchObject({ messages: [], activities: [], busy: false });
+  expect(assistant.getState().error).toBeUndefined();
+  assistant.dispose();
+});
+
+it.each(['during model generation', 'between calls'])(
+  'rejects stale calls when tools change %s',
+  async (when) => {
+    let changed!: () => void;
+    let revision = 1;
+    let rounds = 0;
+    const executed: string[] = [];
+    const modelRevisions: string[] = [];
+    const assistant = createAgentBridge({
+      source: {
+        discover: async () => ({
+          revision,
+          tools: [{ ...list, description: `Revision ${revision}` }],
+        }),
+        subscribe(listener) {
+          changed = listener;
+          return () => {};
+        },
+        dispose() {},
+        execute: async (call) => {
+          executed.push(call.id);
+          if (when === 'between calls' && call.id === 'first') {
+            revision = 2;
+            changed();
+          }
+          return { callId: call.id, ok: true, text: 'Done' };
+        },
+      },
+      model: {
+        generate: async ({ tools }) => {
+          modelRevisions.push(tools[0]?.description ?? '');
+          if (rounds++ === 0) {
+            if (when === 'during model generation') {
+              revision = 2;
+              changed();
+            }
+            return {
+              text: '',
+              toolCalls: [
+                { id: 'first', toolId: 'list', arguments: {} },
+                { id: 'stale', toolId: 'list', arguments: {} },
+              ],
+            };
+          }
+          if (rounds === 2)
+            return { text: '', toolCalls: [{ id: 'fresh', toolId: 'list', arguments: {} }] };
+          return { text: 'Finished', toolCalls: [] };
+        },
+      },
+    });
+    await assistant.send('Read');
+    expect(executed).toEqual(when === 'between calls' ? ['first', 'fresh'] : ['fresh']);
+    expect(modelRevisions).toEqual(['Revision 1', 'Revision 2', 'Revision 2']);
+    expect(
+      assistant.getState().activities.find((entry) => entry.call.id === 'stale')?.result?.code,
+    ).toBe('STALE_TOOLS');
+    assistant.dispose();
+  },
+);

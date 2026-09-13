@@ -86,3 +86,23 @@ it('changes discovered tools when the route changes', async () => {
   expect(registered.has('openBilling')).toBe(true);
   expect(projects.route()).toEqual({ name: 'billing' });
 });
+
+it('returns project IDs that later tools can use after names change', async () => {
+  const registered = installNative();
+  const projects = createProjects();
+  projects.renameProject('phoenix', 'Aurora');
+  const stop = await registerDashboardTools(projects);
+  try {
+    const list = registered.get('listProjects');
+    const open = registered.get('openProject');
+    if (list === undefined || open === undefined) throw new Error('Missing tools');
+    const result = await list.execute({});
+    expect(result.text.split('\n')[0]).toBe('Aurora (id: phoenix)');
+    const id = result.text.match(/\(id: ([^)]+)\)/)?.[1];
+    expect(id).toBeDefined();
+    await open.execute({ id });
+    expect(projects.route()).toEqual({ name: 'details', id: 'phoenix' });
+  } finally {
+    stop();
+  }
+});

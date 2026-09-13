@@ -40,27 +40,30 @@ export function createAgentBridge(options: BridgeOptions): Assistant {
     if (session.getState().busy) {
       throw new AgentError('BUSY', 'The assistant is busy.');
     }
-    turn = new AbortController();
+    const currentTurn = new AbortController();
+    turn = currentTurn;
     session.update((state) => ({
       ...appendVisible(stripTransient(state), { role: 'user', content: text }),
       busy: true,
     }));
     try {
-      await runTurn();
+      await runTurn(boundSignal(currentTurn));
     } catch (error) {
+      if (turn !== currentTurn) return;
       session.update((state) => ({
         ...state,
         busy: false,
         error: toStateError(error),
       }));
     } finally {
-      session.update((state) => ({ ...state, busy: false }));
-      turn = undefined;
+      if (turn === currentTurn) {
+        turn = undefined;
+        session.update((state) => ({ ...state, busy: false }));
+      }
     }
   }
 
-  async function runTurn(): Promise<void> {
-    const signal = boundSignal();
+  async function runTurn(signal: AbortSignal): Promise<void> {
     let snapshot = await options.source.discover(signal);
     for (let round = 0; round < maxRounds; round += 1) {
       if (signal.aborted) throw abortError(signal);
@@ -69,6 +72,7 @@ export function createAgentBridge(options: BridgeOptions): Assistant {
         tools: snapshot.tools,
         signal,
       });
+      if (signal.aborted) throw abortError(signal);
       if (result.toolCalls.length === 0) {
         session.update((state) =>
           appendVisible(state, { role: 'assistant', content: result.text }),
@@ -99,10 +103,13 @@ export function createAgentBridge(options: BridgeOptions): Assistant {
         toolsDirty = false;
         current = await options.source.discover(signal);
       }
+      if (signal.aborted) throw abortError(signal);
       session.update((state) => appendActivity(state, { call, status: 'queued' }));
       const tool = current.tools.find((entry) => entry.id === call.toolId);
       let result: ToolResult;
-      if (tool === undefined) {
+      if (current.revision !== snapshot.revision) {
+        result = fail(call.id, 'STALE_TOOLS', 'The tool list changed. Discover tools again.');
+      } else if (tool === undefined) {
         result = fail(call.id, 'TOOL_UNAVAILABLE', 'This tool is not available.');
       } else if (needsConfirmation(tool, call, options.requiresConfirmation)) {
         const revisionAtPrompt = current.revision;
@@ -115,11 +122,13 @@ export function createAgentBridge(options: BridgeOptions): Assistant {
           ),
         );
         const approved = await waitForApproval(stored, revisionAtPrompt, signal);
+        if (signal.aborted) throw abortError(signal);
         session.update((state) => withoutConfirmation(state));
         if (!approved) {
           result = fail(stored.id, 'CONFIRMATION_DENIED', 'The user denied this action.');
         } else {
           const latest = await options.source.discover(signal);
+          if (signal.aborted) throw abortError(signal);
           current = latest;
           toolsDirty = false;
           if (latest.revision !== revisionAtPrompt) {
@@ -133,6 +142,7 @@ export function createAgentBridge(options: BridgeOptions): Assistant {
       } else {
         result = await executeCall(call, current.revision, signal);
       }
+      if (signal.aborted) throw abortError(signal);
       session.update((state) =>
         appendProtocol(patchActivity(state, call.id, activityFrom(result)), {
           role: 'tool',
@@ -151,6 +161,7 @@ export function createAgentBridge(options: BridgeOptions): Assistant {
   ): Promise<ToolResult> {
     session.update((state) => patchActivity(state, call.id, { status: 'running' }));
     try {
+      if (signal.aborted) throw abortError(signal);
       return await options.source.execute(call, revision, signal);
     } catch (error) {
       if (signal.aborted) throw abortError(signal);
@@ -190,10 +201,9 @@ export function createAgentBridge(options: BridgeOptions): Assistant {
     });
   }
 
-  function boundSignal(): AbortSignal {
+  function boundSignal(controller: AbortController): AbortSignal {
     const timeout = AbortSignal.timeout(timeoutMs);
-    if (turn === undefined) return timeout;
-    return AbortSignal.any([turn.signal, timeout]);
+    return AbortSignal.any([controller.signal, timeout]);
   }
 
   return {
@@ -215,15 +225,19 @@ export function createAgentBridge(options: BridgeOptions): Assistant {
       turn?.abort();
     },
     clear() {
+      const previous = turn;
+      turn = undefined;
       pending?.finish(false);
-      turn?.abort();
+      previous?.abort();
       session.clear();
     },
     getState: () => session.getState(),
     subscribe: (listener) => session.subscribe(listener),
     dispose() {
+      const previous = turn;
+      turn = undefined;
       pending?.finish(false);
-      turn?.abort();
+      previous?.abort();
       stopSource();
       session.dispose();
     },

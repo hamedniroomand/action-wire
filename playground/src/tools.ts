@@ -50,8 +50,8 @@ const GLOBAL_TOOLS: readonly ToolSpec[] = [
     run: async (projects) => ({
       text: projects
         .list()
-        .map((project) => project.name)
-        .join(', '),
+        .map((project) => `${project.name} (id: ${project.id})`)
+        .join('\n'),
     }),
   },
   {
@@ -71,7 +71,7 @@ const GLOBAL_TOOLS: readonly ToolSpec[] = [
     inputSchema: NAME,
     run: async (projects, input) => {
       const project = projects.createProject(readString(input, 'name'));
-      return { text: `Created ${project.name}` };
+      return { text: `Created ${project.name} (id: ${project.id})` };
     },
   },
   {
