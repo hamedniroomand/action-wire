@@ -1,0 +1,158 @@
+:root {
+  --wa-color-accent: #2563eb;
+  --wa-color-accent-text: #fff;
+  --wa-color-surface: #fff;
+  --wa-color-canvas: #f4f7fb;
+  --wa-color-border: #e5e7eb;
+  --wa-color-text: #111827;
+  --wa-color-muted: #6b7280;
+  --wa-color-danger: #dc2626;
+  --wa-radius: 16px;
+  --wa-shadow: 0 10px 30px rgb(15 23 42 / 8%);
+  --wa-font: ui-sans-serif, system-ui, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--wa-color-canvas);
+  color: var(--wa-color-text);
+  font-family: var(--wa-font);
+}
+
+#app {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 16px;
+  min-height: 100dvh;
+  padding: 16px;
+}
+
+.sidebar,
+main {
+  background: var(--wa-color-surface);
+  border: 1px solid var(--wa-color-border);
+  border-radius: var(--wa-radius);
+  box-shadow: var(--wa-shadow);
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px 12px;
+}
+
+.brand {
+  margin: 0 12px 12px;
+  font-weight: 650;
+}
+
+.sidebar button {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sidebar button[aria-current='page'] {
+  background: #eff6ff;
+  color: var(--wa-color-accent);
+}
+
+main {
+  padding: 28px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.lede,
+.meta {
+  color: var(--wa-color-muted);
+}
+
+.lede {
+  margin: 8px 0 24px;
+}
+
+.create,
+form,
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+input {
+  flex: 1 1 180px;
+  padding: 10px 12px;
+  border: 1px solid var(--wa-color-border);
+  border-radius: 10px;
+  font: inherit;
+}
+
+button {
+  font: inherit;
+}
+
+main button {
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--wa-color-accent);
+  color: var(--wa-color-accent-text);
+  cursor: pointer;
+}
+
+main button.danger {
+  background: var(--wa-color-danger);
+}
+
+main button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.projects {
+  display: grid;
+  gap: 10px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.projects button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  padding: 16px;
+  border: 1px solid var(--wa-color-border);
+  border-radius: 12px;
+  background: #f8fafc;
+  color: inherit;
+  text-align: left;
+}
+
+@media (max-width: 640px) {
+  #app {
+    grid-template-columns: 1fr;
+  }
+}

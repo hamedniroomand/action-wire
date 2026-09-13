@@ -1,0 +1,7 @@
+{
+  "name": "playground",
+  "version": "0.1.0",
+  "private": true,
+  "license": "ISC",
+  "type": "module"
+}
