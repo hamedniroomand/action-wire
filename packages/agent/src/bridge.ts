@@ -7,11 +7,11 @@ import type {
   ErrorCode,
   Message,
   ToolCall,
-  ToolDefinition,
   ToolResult,
   ToolSnapshot,
 } from '@webmcp-agent/core';
 
+import { buildConfirmation, needsConfirmation } from '~/confirmation';
 import { createSessionStore } from '~/session';
 
 /* oxlint-disable eslint/no-await-in-loop -- Model rounds and tool calls must run in order. */
@@ -25,6 +25,14 @@ export function createAgentBridge(options: BridgeOptions): Assistant {
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   let turn: AbortController | undefined;
   let toolsDirty = false;
+  let pending:
+    | {
+        id: string;
+        call: ToolCall;
+        revision: number;
+        finish: (approved: boolean) => void;
+      }
+    | undefined;
   const stopSource = options.source.subscribe(() => {
     toolsDirty = true;
   });
@@ -98,19 +106,33 @@ export function createAgentBridge(options: BridgeOptions): Assistant {
       if (tool === undefined) {
         result = fail(call.id, 'TOOL_UNAVAILABLE', 'This tool is not available.');
       } else if (needsConfirmation(tool, call, options.requiresConfirmation)) {
-        result = fail(call.id, 'CONFIRMATION_DENIED', 'This tool requires confirmation.');
-      } else {
-        session.update((state) => patchActivity(state, call.id, { status: 'running' }));
-        try {
-          result = await options.source.execute(call, current.revision, signal);
-        } catch (error) {
-          if (signal.aborted) throw abortError(signal);
-          result = fail(
-            call.id,
-            error instanceof AgentError ? error.code : 'EXECUTION_FAILED',
-            error instanceof Error ? error.message : 'Tool execution failed.',
-          );
+        const revisionAtPrompt = current.revision;
+        const stored = freezeCall(call);
+        session.update((state) =>
+          patchActivity(
+            { ...state, confirmation: buildConfirmation(tool, stored, revisionAtPrompt) },
+            stored.id,
+            { status: 'awaiting-confirmation' },
+          ),
+        );
+        const approved = await waitForApproval(stored, revisionAtPrompt, signal);
+        session.update((state) => withoutConfirmation(state));
+        if (!approved) {
+          result = fail(stored.id, 'CONFIRMATION_DENIED', 'The user denied this action.');
+        } else {
+          const latest = await options.source.discover(signal);
+          current = latest;
+          toolsDirty = false;
+          if (latest.revision !== revisionAtPrompt) {
+            result = fail(stored.id, 'STALE_TOOLS', 'The tool list changed. Discover tools again.');
+          } else if (latest.tools.every((entry) => entry.id !== stored.toolId)) {
+            result = fail(stored.id, 'TOOL_UNAVAILABLE', 'This tool is not available.');
+          } else {
+            result = await executeCall(stored, latest.revision, signal);
+          }
         }
+      } else {
+        result = await executeCall(call, current.revision, signal);
       }
       session.update((state) =>
         appendProtocol(patchActivity(state, call.id, activityFrom(result)), {
@@ -121,6 +143,52 @@ export function createAgentBridge(options: BridgeOptions): Assistant {
       );
     }
     return current;
+  }
+
+  async function executeCall(
+    call: ToolCall,
+    revision: number,
+    signal: AbortSignal,
+  ): Promise<ToolResult> {
+    session.update((state) => patchActivity(state, call.id, { status: 'running' }));
+    try {
+      return await options.source.execute(call, revision, signal);
+    } catch (error) {
+      if (signal.aborted) throw abortError(signal);
+      return fail(
+        call.id,
+        error instanceof AgentError ? error.code : 'EXECUTION_FAILED',
+        error instanceof Error ? error.message : 'Tool execution failed.',
+      );
+    }
+  }
+
+  function waitForApproval(
+    call: ToolCall,
+    revision: number,
+    signal: AbortSignal,
+  ): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      const onAbort = () => {
+        pending = undefined;
+        reject(abortError(signal));
+      };
+      if (signal.aborted) {
+        onAbort();
+        return;
+      }
+      signal.addEventListener('abort', onAbort, { once: true });
+      pending = {
+        id: call.id,
+        call,
+        revision,
+        finish(approved) {
+          signal.removeEventListener('abort', onAbort);
+          pending = undefined;
+          resolve(approved);
+        },
+      };
+    });
   }
 
   function boundSignal(): AbortSignal {
@@ -136,17 +204,26 @@ export function createAgentBridge(options: BridgeOptions): Assistant {
       toolsDirty = false;
       return snapshot;
     },
-    confirm() {},
+    confirm(id, approved) {
+      if (pending === undefined || pending.id !== id) return;
+      pending.finish(approved);
+    },
     cancel() {
+      if (pending !== undefined) {
+        pending.finish(false);
+        return;
+      }
       turn?.abort();
     },
     clear() {
+      pending?.finish(false);
       turn?.abort();
       session.clear();
     },
     getState: () => session.getState(),
     subscribe: (listener) => session.subscribe(listener),
     dispose() {
+      pending?.finish(false);
       turn?.abort();
       stopSource();
       session.dispose();
@@ -154,14 +231,22 @@ export function createAgentBridge(options: BridgeOptions): Assistant {
   };
 }
 
-function needsConfirmation(
-  tool: ToolDefinition,
-  call: ToolCall,
-  policy: BridgeOptions['requiresConfirmation'],
-): boolean {
-  if (tool.consequential === true) return true;
-  if (policy?.(tool, call) === true) return true;
-  return tool.readOnly !== true;
+function freezeCall(call: ToolCall): ToolCall {
+  return Object.freeze({
+    id: call.id,
+    toolId: call.toolId,
+    arguments: Object.freeze({ ...call.arguments }),
+  });
+}
+
+function withoutConfirmation(state: AssistantState): AssistantState {
+  return {
+    timeline: state.timeline,
+    messages: state.messages,
+    activities: state.activities,
+    busy: state.busy,
+    ...(state.error === undefined ? {} : { error: state.error }),
+  };
 }
 
 function stripTransient(state: AssistantState): AssistantState {
