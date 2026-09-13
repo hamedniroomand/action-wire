@@ -1,8 +1,8 @@
 /* oxlint-disable typescript/no-unsafe-type-assertion -- These cases pass invalid runtime data through the typed API. */
 import { expect, it } from 'vitest';
 
-import { createToolRegistry, AgentError } from '../src/index.js';
-import type { ToolDefinition } from '../src/index.js';
+import { createToolRegistry, AgentError } from '~/index';
+import type { ToolDefinition } from '~/index';
 
 const tool = (): ToolDefinition => ({
   id: 'echo',

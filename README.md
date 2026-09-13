@@ -42,3 +42,9 @@ Tool IDs and names must be unique. Each tool must have a nonempty ID, name, and 
 `createEmitter<T>()` supports `subscribe`, `emit`, and `clear`. Listener errors do not stop delivery. A new listener starts at the next event. Removal takes effect before the next call. Each subscription has its own unsubscribe function.
 
 See [browser compatibility and recorded evidence](docs/compatibility.md).
+
+## Source imports
+
+Use extensionless imports in TypeScript source. `~/` points to the current package's source directory. For core, `~/types` resolves to `packages/core/src/types.ts`. In the standalone probe, `~/probe` resolves to `playground/compatibility/probe.ts`.
+
+TypeScript, Vitest, and Vite read the package path mappings. The core build uses `tsc-alias` to convert aliases to relative `.js` paths in JavaScript and declarations. Consumers do not need an alias loader. External packages keep their package import paths. The Ajv 2020 subpath uses the native package import map `#ajv/2020`, so source imports remain extensionless.

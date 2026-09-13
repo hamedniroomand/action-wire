@@ -1,7 +1,7 @@
-import { AgentError } from './errors.js';
-import { copyJson, freeze } from './json.js';
-import { createSchemaValidator } from './schema.js';
-import type { ToolDefinition, ToolSnapshot } from './types.js';
+import { AgentError } from '~/errors';
+import { copyJson, freeze } from '~/json';
+import { createSchemaValidator } from '~/schema';
+import type { ToolDefinition, ToolSnapshot } from '~/types';
 
 export function createToolRegistry() {
   let snapshot: ToolSnapshot = freeze({ revision: 0, tools: [] });

@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 
-import { createEmitter } from '../src/index.js';
+import { createEmitter } from '~/index';
 
 it('continues delivery after a listener throws and supports unsubscribe and clear', () => {
   const emitter = createEmitter<number>();

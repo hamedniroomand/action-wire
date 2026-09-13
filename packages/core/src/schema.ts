@@ -1,8 +1,8 @@
 import { Ajv } from 'ajv';
-import { Ajv2020 } from 'ajv/dist/2020.js';
 
-import { AgentError } from './errors.js';
-import type { Json } from './types.js';
+import { Ajv2020 } from '#ajv/2020';
+import { AgentError } from '~/errors';
+import type { Json } from '~/types';
 
 export function createSchemaValidator() {
   const draft7 = new Ajv({ strict: false, allErrors: true });

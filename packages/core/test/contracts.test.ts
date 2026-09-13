@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 
-import type { AssistantState, ToolCall, ToolSource, ToolStatus } from '../src/index.js';
+import type { AssistantState, ToolCall, ToolSource, ToolStatus } from '~/index';
 
 it('connects a typed tool source to a caller with a result ID', async () => {
   const source: ToolSource = {

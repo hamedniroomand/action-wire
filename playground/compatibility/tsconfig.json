@@ -3,7 +3,10 @@
   "compilerOptions": {
     "lib": ["ES2023", "DOM"],
     "types": [],
-    "noEmit": true
+    "noEmit": true,
+    "paths": {
+      "~/*": ["./*"]
+    }
   },
   "include": ["main.ts", "probe.ts"]
 }

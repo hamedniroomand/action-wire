@@ -1,5 +1,5 @@
-import { AgentError } from './errors.js';
-import type { Json } from './types.js';
+import { AgentError } from '~/errors';
+import type { Json } from '~/types';
 
 export function copyJson(value: unknown, ancestors = new Set<object>()): Json {
   if (value === null || typeof value === 'string' || typeof value === 'boolean') return value;

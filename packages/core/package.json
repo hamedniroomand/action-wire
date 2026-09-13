@@ -7,6 +7,9 @@
     "dist"
   ],
   "type": "module",
+  "imports": {
+    "#ajv/2020": "ajv/dist/2020.js"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -14,8 +17,8 @@
     }
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "build": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p test/tsconfig.json"
   },
   "dependencies": {
     "ajv": "^8.20.0"

@@ -18,7 +18,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "probe": "vite playground/compatibility --host 127.0.0.1 --port 4173 --strictPort",
+    "probe": "vite playground/compatibility --config vite.config.ts --host 127.0.0.1 --port 4173 --strictPort",
     "test:native": "playwright test --project chromium-webmcp --grep \"records native\""
   },
   "devDependencies": {
@@ -31,6 +31,7 @@
     "oxfmt": "^0.67.0",
     "oxlint": "^1.82.0",
     "oxlint-tsgolint": "^7.0.2001",
+    "tsc-alias": "1.9.5",
     "typescript": "7.0.2",
     "vite": "8.3.0",
     "vitest": "5.0.0"

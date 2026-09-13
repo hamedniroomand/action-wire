@@ -1,4 +1,4 @@
-import type { ErrorCode } from './errors.js';
+import type { ErrorCode } from '~/errors';
 
 export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 export type ToolDefinition = {

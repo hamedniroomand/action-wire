@@ -1,4 +1,4 @@
-import { runProbe } from './probe.js';
+import { runProbe } from '~/probe';
 
 const button = document.querySelector<HTMLButtonElement>('#run')!;
 const output = document.querySelector<HTMLPreElement>('#report')!;
