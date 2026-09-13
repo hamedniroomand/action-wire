@@ -15,6 +15,7 @@ test('keeps the panel inside 320px and the composer visible', async ({ page }) =
     return {
       overflowX: panel.scrollWidth - panel.clientWidth,
       panelRight: panelBox.right,
+      panelBottom: panelBox.bottom,
       composerTop: composerBox.top,
       composerBottom: composerBox.bottom,
       viewportWidth: window.innerWidth,
@@ -25,6 +26,7 @@ test('keeps the panel inside 320px and the composer visible', async ({ page }) =
   expect(metrics.panelRight).toBeLessThanOrEqual(metrics.viewportWidth + 1);
   expect(metrics.composerTop).toBeGreaterThanOrEqual(0);
   expect(metrics.composerBottom).toBeLessThanOrEqual(metrics.viewportHeight + 1);
+  expect(metrics.panelBottom).toBeLessThanOrEqual(metrics.viewportHeight + 1);
 });
 
 test('runs the native delete only after the Delete click', async ({ page }) => {

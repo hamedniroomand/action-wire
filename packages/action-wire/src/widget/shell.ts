@@ -1,6 +1,7 @@
 import type { Assistant, AssistantState } from '~/core';
 import { createComposer } from '~/widget/composer';
 import { attachConfirmation } from '~/widget/confirmation-view';
+import { sparkIcon } from '~/widget/icons';
 import { STYLES } from '~/widget/styles';
 import { attachTimeline } from '~/widget/timeline';
 
@@ -15,7 +16,7 @@ export function attachShell(
   launcher.type = 'button';
   launcher.className = 'launcher';
   launcher.setAttribute('aria-label', 'Open assistant');
-  launcher.append(chatIcon());
+  launcher.append(sparkIcon());
   const panel = document.createElement('div');
   panel.className = 'panel';
   panel.hidden = true;
@@ -47,7 +48,10 @@ export function attachShell(
     if (assistant.getState().busy) return;
     void assistant.send(text);
   });
-  panel.append(header, timeline, confirmation.root, composer.root);
+  const hint = document.createElement('p');
+  hint.className = 'hint';
+  hint.textContent = 'The assistant can use the tools on this page.';
+  panel.append(header, timeline, confirmation.root, composer.root, hint);
   shadow.replaceChildren(style, launcher, panel);
 
   function setOpen(open: boolean): void {
@@ -122,15 +126,4 @@ function isDisabled(node: HTMLElement): boolean {
   return (
     (node instanceof HTMLButtonElement || node instanceof HTMLTextAreaElement) && node.disabled
   );
-}
-
-function chatIcon(): SVGSVGElement {
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('viewBox', '0 0 24 24');
-  svg.setAttribute('aria-hidden', 'true');
-  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  path.setAttribute('fill', 'currentColor');
-  path.setAttribute('d', 'M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2z');
-  svg.append(path);
-  return svg;
 }

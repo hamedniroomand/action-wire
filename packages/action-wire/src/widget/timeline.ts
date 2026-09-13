@@ -1,5 +1,6 @@
 import type { AssistantState, Message } from '~/core';
 import { busyCopy, emptyCopy, friendlyError } from '~/widget/errors';
+import { sparkIcon } from '~/widget/icons';
 import { updateToolCard } from '~/widget/tool-card';
 
 const NEAR_BOTTOM_PX = 48;
@@ -32,7 +33,6 @@ export function attachTimeline(
       error.hidden = false;
       error.textContent = friendlyError(state.error.code);
     }
-    root.append(empty, busy, error);
     for (const item of state.timeline) {
       const node = itemNode(nodes, item, state, options.developerMode);
       if (node === undefined) continue;
@@ -44,6 +44,7 @@ export function attachTimeline(
       node.remove();
       nodes.delete(key);
     }
+    root.append(empty, busy, error);
     root.scrollTop = near ? root.scrollHeight : keep;
   };
 }
@@ -80,10 +81,19 @@ function itemNode(
 }
 
 function renderMessage(message: Message): HTMLElement {
-  const node = document.createElement('p');
-  node.className = `message message-${message.role}`;
-  node.textContent = message.content;
-  return node;
+  const row = document.createElement('div');
+  row.className = `message-row message-row-${message.role}`;
+  if (message.role === 'assistant') {
+    const avatar = document.createElement('span');
+    avatar.className = 'avatar';
+    avatar.append(sparkIcon());
+    row.append(avatar);
+  }
+  const bubble = document.createElement('p');
+  bubble.className = `message message-${message.role}`;
+  bubble.textContent = message.content;
+  row.append(bubble);
+  return row;
 }
 
 function isNearBottom(root: HTMLElement): boolean {

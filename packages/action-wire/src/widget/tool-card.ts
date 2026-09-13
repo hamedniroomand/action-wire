@@ -16,6 +16,7 @@ export function updateToolCard(
 ): void {
   node.className = 'tool-card';
   node.dataset['callId'] = activity.call.id;
+  node.dataset['status'] = activity.status;
   const name = child(node, 'tool-name');
   name.textContent = activity.call.toolId;
   const status = child(node, 'tool-status');
@@ -25,6 +26,9 @@ export function updateToolCard(
       : STATUS[activity.status];
   const summary = child(node, 'tool-summary');
   summary.textContent = activity.result?.text ?? '';
+  const id = child(node, 'tool-id');
+  id.hidden = !developerMode;
+  id.textContent = developerMode ? `id: ${activity.call.id}` : '';
   const raw = child(node, 'tool-raw', 'pre');
   if (developerMode && activity.result?.data !== undefined) {
     raw.hidden = false;

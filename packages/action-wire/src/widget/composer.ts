@@ -1,3 +1,5 @@
+import { sendIcon } from '~/widget/icons';
+
 export function createComposer(send: (text: string) => void): {
   root: HTMLElement;
   setBusy: (busy: boolean) => void;
@@ -9,7 +11,7 @@ export function createComposer(send: (text: string) => void): {
   button.type = 'button';
   button.className = 'send';
   button.setAttribute('aria-label', 'Send');
-  button.textContent = 'Send';
+  button.append(sendIcon());
   const root = document.createElement('div');
   root.className = 'composer';
   root.append(field, button);
