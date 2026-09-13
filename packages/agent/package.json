@@ -1,0 +1,23 @@
+{
+  "name": "@webmcp-agent/agent",
+  "version": "0.1.0",
+  "description": "Headless text agent runtime for WebMCP Agent.",
+  "license": "ISC",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p test/tsconfig.json"
+  },
+  "dependencies": {
+    "@webmcp-agent/core": "workspace:*"
+  }
+}
