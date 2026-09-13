@@ -5,5 +5,9 @@
     "types": ["node"],
     "noEmit": true
   },
-  "include": ["playground/compatibility/*.spec.ts", "playground/server/**/*.ts"]
+  "include": [
+    "playground/compatibility/*.spec.ts",
+    "playground/server/**/*.ts",
+    "packages/widget/e2e/**/*.ts"
+  ]
 }

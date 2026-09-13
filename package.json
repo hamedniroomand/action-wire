@@ -19,6 +19,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "probe": "vite playground/compatibility --config vite.config.ts --host 127.0.0.1 --port 4173 --strictPort",
+    "widget:dev": "vite packages/widget/e2e --config vite.config.ts --host 127.0.0.1 --port 4174 --strictPort",
     "test:native": "playwright test --project chromium-webmcp --grep \"records native\""
   },
   "devDependencies": {

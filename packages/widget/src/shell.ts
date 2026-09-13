@@ -1,6 +1,7 @@
 import type { Assistant, AssistantState } from '@webmcp-agent/core';
 
 import { createComposer } from '~/composer';
+import { attachConfirmation } from '~/confirmation-view';
 import { STYLES } from '~/styles';
 import { attachTimeline } from '~/timeline';
 
@@ -42,16 +43,23 @@ export function attachShell(
   const timeline = document.createElement('div');
   timeline.className = 'timeline';
   const renderTimeline = attachTimeline(timeline, { developerMode });
+  const confirmation = attachConfirmation(assistant);
   const composer = createComposer((text) => {
     if (assistant.getState().busy) return;
     void assistant.send(text);
   });
-  panel.append(header, timeline, composer.root);
+  panel.append(header, timeline, confirmation.root, composer.root);
   shadow.replaceChildren(style, launcher, panel);
 
   function setOpen(open: boolean): void {
     panel.hidden = !open;
     launcher.hidden = open;
+    if (open) {
+      const field = panel.querySelector('textarea');
+      if (field instanceof HTMLTextAreaElement) field.focus();
+      return;
+    }
+    launcher.focus();
   }
 
   launcher.addEventListener('click', () => {
@@ -66,9 +74,17 @@ export function attachShell(
     setOpen(false);
   });
   panel.addEventListener('keydown', (event) => {
-    if (event.key !== 'Escape') return;
-    event.preventDefault();
-    setOpen(false);
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      const prompt = assistant.getState().confirmation;
+      if (prompt !== undefined) {
+        assistant.confirm(prompt.id, false);
+        return;
+      }
+      setOpen(false);
+      return;
+    }
+    if (event.key === 'Tab') trapFocus(panel, event);
   });
 
   return (state) => {
@@ -76,7 +92,37 @@ export function attachShell(
     status.textContent = state.busy ? 'Thinking' : '';
     composer.setBusy(state.busy);
     renderTimeline(state);
+    confirmation.sync(state);
   };
+}
+
+function trapFocus(root: HTMLElement, event: KeyboardEvent): void {
+  const items = [...root.querySelectorAll('button, textarea')].filter(
+    (node): node is HTMLElement => {
+      if (!(node instanceof HTMLElement) || node.closest('[hidden]') !== null) return false;
+      return !isDisabled(node);
+    },
+  );
+  const first = items[0];
+  const last = items.at(-1);
+  if (first === undefined || last === undefined) return;
+  const scope = root.getRootNode();
+  const active = scope instanceof ShadowRoot ? scope.activeElement : undefined;
+  if (event.shiftKey && active === first) {
+    event.preventDefault();
+    last.focus();
+    return;
+  }
+  if (!event.shiftKey && active === last) {
+    event.preventDefault();
+    first.focus();
+  }
+}
+
+function isDisabled(node: HTMLElement): boolean {
+  return (
+    (node instanceof HTMLButtonElement || node instanceof HTMLTextAreaElement) && node.disabled
+  );
 }
 
 function chatIcon(): SVGSVGElement {
