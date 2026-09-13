@@ -1,8 +1,8 @@
 {
-  "name": "action-wire",
+  "name": "actionwire",
   "version": "1.0.0",
   "private": false,
-  "description": "",
+  "description": "Action Wire monorepo: the action-wire package, the playground, the framework examples, and the documentation site.",
   "keywords": [],
   "homepage": "https://github.com/hamedniroomand/action-wire",
   "bugs": {
