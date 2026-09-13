@@ -2,12 +2,20 @@
   "name": "webmcp-agent",
   "version": "1.0.0",
   "description": "",
+  "keywords": [],
+  "license": "ISC",
+  "author": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix",
+    "format:check": "oxfmt --check",
+    "format": "oxfmt ."
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "devDependencies": {
+    "oxfmt": "^0.67.0",
+    "oxlint": "^1.82.0",
+    "oxlint-tsgolint": "^7.0.2001"
+  },
   "packageManager": "pnpm@10.13.1"
 }
