@@ -1,0 +1,17 @@
+{
+  "name": "example-react",
+  "version": "0.1.0",
+  "private": true,
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@webmcp-agent/agent": "workspace:*",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.13",
+    "@types/react-dom": "^19.1.9",
+    "@vitejs/plugin-react": "^5.0.4"
+  }
+}
