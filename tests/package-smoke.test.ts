@@ -38,7 +38,14 @@ it('packs installable ESM packages without workspace aliases', () => {
       ...asRecord(pkg['devDependencies']),
       ...asRecord(pkg['peerDependencies']),
     };
-    for (const banned of ['react', 'vue', 'livekit-client', 'openai-realtime', 'webrtc']) {
+    for (const banned of [
+      'react',
+      'vue',
+      'svelte',
+      'livekit-client',
+      'openai-realtime',
+      'webrtc',
+    ]) {
       expect(dependencies[banned], `${name} must not depend on ${banned}`).toBeUndefined();
     }
   }

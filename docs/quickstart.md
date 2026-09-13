@@ -79,5 +79,6 @@ Pass `developerMode: true` to show raw JSON on tool cards. The default view show
 - Vanilla JavaScript: `examples/vanilla`
 - React: `examples/react`
 - Vue: `examples/vue`
+- Svelte: `examples/svelte`
 
-Build the packages first, then run `pnpm vanilla:dev`, `pnpm react:dev`, or `pnpm vue:dev`.
+Build the packages first, then run `pnpm vanilla:dev`, `pnpm react:dev`, `pnpm vue:dev`, or `pnpm svelte:dev`.

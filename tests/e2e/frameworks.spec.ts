@@ -8,6 +8,7 @@ const HOSTS = [
   { name: 'Vanilla', url: 'http://127.0.0.1:4176/' },
   { name: 'React', url: 'http://127.0.0.1:4177/' },
   { name: 'Vue', url: 'http://127.0.0.1:4178/' },
+  { name: 'Svelte', url: 'http://127.0.0.1:4179/' },
 ] as const;
 
 test('keeps the desktop panel inside the viewport', async ({ page }) => {
@@ -61,7 +62,7 @@ for (const host of HOSTS) {
   });
 }
 
-test('does not add voice, React, or Vue to browser packages', async () => {
+test('does not add voice, React, Vue, or Svelte to browser packages', async () => {
   const root = join(dirname(fileURLToPath(import.meta.url)), '../..');
   const files = await Promise.all(
     (['core', 'webmcp', 'agent', 'widget'] as const).map(async (name) => ({
@@ -77,7 +78,14 @@ test('does not add voice, React, or Vue to browser packages', async () => {
       ...readDeps(record, 'devDependencies'),
       ...readDeps(record, 'peerDependencies'),
     };
-    for (const banned of ['react', 'vue', 'livekit-client', 'openai-realtime', 'webrtc']) {
+    for (const banned of [
+      'react',
+      'vue',
+      'svelte',
+      'livekit-client',
+      'openai-realtime',
+      'webrtc',
+    ]) {
       expect(dependencies[banned], `${name} must not depend on ${banned}`).toBeUndefined();
     }
   }

@@ -11,7 +11,7 @@ First MVP release. Not published to npm until package-name ownership is confirme
 - `@webmcp-agent/agent`: headless bridge and OpenAI-compatible Node endpoint adapter.
 - `webmcp-agent`: Web Component widget with confirmation, tool cards, and session UI.
 - Playground project dashboard with single-source WebMCP tools.
-- Vanilla JavaScript, React, and Vue examples.
+- Vanilla JavaScript, React, Vue, and Svelte examples.
 - Playwright native gate, failure matrix, and package smoke install.
 - MIT license, quickstart, architecture, headless, confirmation, and troubleshooting docs.
 

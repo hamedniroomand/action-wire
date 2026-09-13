@@ -46,6 +46,7 @@ Register tools on the page with native WebMCP before discovery. Keep model crede
 - `examples/vanilla`
 - `examples/react`
 - `examples/vue`
+- `examples/svelte`
 - `playground`: project dashboard used by the journey test.
 
 ## Documentation

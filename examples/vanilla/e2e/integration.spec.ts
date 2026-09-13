@@ -30,7 +30,7 @@ test('runs the built package, invokes the host handler, and destroys the widget'
   await expect(page.locator('webmcp-assistant')).toHaveCount(0);
 });
 
-test('does not depend on React or Vue', async () => {
+test('does not depend on React, Vue, or Svelte', async () => {
   const raw = await readFile(
     join(dirname(fileURLToPath(import.meta.url)), '../package.json'),
     'utf8',
@@ -43,6 +43,7 @@ test('does not depend on React or Vue', async () => {
   };
   expect(dependencies['react']).toBeUndefined();
   expect(dependencies['vue']).toBeUndefined();
+  expect(dependencies['svelte']).toBeUndefined();
 });
 
 async function send(page: Page, text: string): Promise<void> {

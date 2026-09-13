@@ -37,7 +37,7 @@ test('does not duplicate registrations or widgets on unmount and remount', async
   expect(await toolNames(page)).toEqual(['setStatus']);
 });
 
-test('uses the same built library output as Vanilla, React, and Svelte', async () => {
+test('uses the same built library output as Vanilla, React, and Vue', async () => {
   const root = join(dirname(fileURLToPath(import.meta.url)), '../../..');
   const configs = await Promise.all(
     ['vanilla', 'react', 'vue', 'svelte'].map((name) =>

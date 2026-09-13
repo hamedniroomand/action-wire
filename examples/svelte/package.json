@@ -1,0 +1,14 @@
+{
+  "name": "example-svelte",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@webmcp-agent/agent": "workspace:*",
+    "svelte": "^5.57.0"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^7.3.0"
+  }
+}

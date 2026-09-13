@@ -6,22 +6,22 @@ Recorded: 2026-09-13. Host: macOS. Playwright 1.63.0. Bundled Chromium 153.0.801
 
 ## PRD acceptance
 
-| #   | Criterion                                                                  | Evidence                                                                                        |
-| --- | -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| 1   | A web application can expose WebMCP tools                                  | `playground/src/tools.ts`                                                                       |
-| 2   | The library discovers them automatically                                   | `tests/e2e/native-webmcp.spec.ts`, `playground/compatibility/probe.spec.ts`                     |
-| 3   | The tools become available to the text agent                               | `playground/e2e/journey.spec.ts`, `tests/e2e/native-webmcp.spec.ts`                             |
-| 4   | The user can request an action using natural language                      | `playground/e2e/journey.spec.ts`                                                                |
-| 5   | The agent selects and calls the correct WebMCP tool                        | `playground/e2e/journey.spec.ts`                                                                |
-| 6   | The existing application handler performs the action                       | playground journey; Vanilla, React, and Vue example tests                                       |
-| 7   | The result is returned to the agent                                        | `playground/e2e/journey.spec.ts`                                                                |
-| 8   | The assistant responds naturally after execution                           | Scripted wording in `playground/e2e/journey.spec.ts`. Manual real-model steps are in that file. |
-| 9   | Tool activity is visible in the widget                                     | Journey; `packages/widget/e2e/accessibility.spec.ts`                                            |
-| 10  | Destructive actions require confirmation                                   | Journey; widget confirmation tests                                                              |
-| 11  | Tool availability can refresh while the app is running                     | Journey billing tools; `tests/e2e/failures.spec.ts` navigation case                             |
-| 12  | The same browser/core implementation works with Vanilla JS, Vue, and React | `tests/e2e/frameworks.spec.ts`; `examples/*/e2e`                                                |
-| 13  | No tool definition is duplicated between WebMCP and the agent              | `tests/e2e/frameworks.spec.ts` checks `playground/src/assistant.ts`                             |
-| 14  | No voice-related dependencies are introduced in Phase 1                    | `tests/e2e/frameworks.spec.ts`; `tests/package-smoke.test.ts`                                   |
+| #   | Criterion                                                                          | Evidence                                                                                        |
+| --- | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| 1   | A web application can expose WebMCP tools                                          | `playground/src/tools.ts`                                                                       |
+| 2   | The library discovers them automatically                                           | `tests/e2e/native-webmcp.spec.ts`, `playground/compatibility/probe.spec.ts`                     |
+| 3   | The tools become available to the text agent                                       | `playground/e2e/journey.spec.ts`, `tests/e2e/native-webmcp.spec.ts`                             |
+| 4   | The user can request an action using natural language                              | `playground/e2e/journey.spec.ts`                                                                |
+| 5   | The agent selects and calls the correct WebMCP tool                                | `playground/e2e/journey.spec.ts`                                                                |
+| 6   | The existing application handler performs the action                               | playground journey; Vanilla, React, Vue, and Svelte example tests                               |
+| 7   | The result is returned to the agent                                                | `playground/e2e/journey.spec.ts`                                                                |
+| 8   | The assistant responds naturally after execution                                   | Scripted wording in `playground/e2e/journey.spec.ts`. Manual real-model steps are in that file. |
+| 9   | Tool activity is visible in the widget                                             | Journey; `packages/widget/e2e/accessibility.spec.ts`                                            |
+| 10  | Destructive actions require confirmation                                           | Journey; widget confirmation tests                                                              |
+| 11  | Tool availability can refresh while the app is running                             | Journey billing tools; `tests/e2e/failures.spec.ts` navigation case                             |
+| 12  | The same browser/core implementation works with Vanilla JS, Vue, React, and Svelte | `tests/e2e/frameworks.spec.ts`; `examples/*/e2e`                                                |
+| 13  | No tool definition is duplicated between WebMCP and the agent                      | `tests/e2e/frameworks.spec.ts` checks `playground/src/assistant.ts`                             |
+| 14  | No voice-related dependencies are introduced in Phase 1                            | `tests/e2e/frameworks.spec.ts`; `tests/package-smoke.test.ts`                                   |
 
 See [compatibility](compatibility.md) for the native matrix. Fixture `ToolSource` tests are not native evidence.
 

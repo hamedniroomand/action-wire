@@ -67,6 +67,16 @@ export default defineConfig({
       },
     },
     {
+      name: 'svelte-example',
+      testDir: './examples/svelte/e2e',
+      testMatch: '**/*.spec.ts',
+      use: {
+        browserName: 'chromium',
+        baseURL: 'http://127.0.0.1:4179',
+        launchOptions: { args: ['--enable-experimental-web-platform-features'] },
+      },
+    },
+    {
       name: 'e2e-failures',
       testDir: './tests/e2e',
       testMatch: 'failures.spec.ts',
@@ -100,5 +110,6 @@ export default defineConfig({
     { command: 'pnpm vanilla:dev', url: 'http://127.0.0.1:4176', reuseExistingServer: false },
     { command: 'pnpm react:dev', url: 'http://127.0.0.1:4177', reuseExistingServer: false },
     { command: 'pnpm vue:dev', url: 'http://127.0.0.1:4178', reuseExistingServer: false },
+    { command: 'pnpm svelte:dev', url: 'http://127.0.0.1:4179', reuseExistingServer: false },
   ],
 });

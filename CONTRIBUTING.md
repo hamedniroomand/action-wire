@@ -32,4 +32,4 @@ Build order is core, then webmcp and agent, then widget:
 pnpm --filter ./packages/core --filter ./packages/webmcp --filter ./packages/agent --filter ./packages/widget build
 ```
 
-Do not add React, Vue, or voice dependencies to `packages/core`, `packages/webmcp`, `packages/agent`, or `packages/widget`.
+Do not add React, Vue, Svelte, or voice dependencies to `packages/core`, `packages/webmcp`, `packages/agent`, or `packages/widget`.
