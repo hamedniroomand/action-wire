@@ -7,6 +7,9 @@
     "dist"
   ],
   "type": "module",
+  "imports": {
+    "#ajv/2020": "ajv/dist/2020.js"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -18,6 +21,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p test/tsconfig.json"
   },
   "dependencies": {
-    "@webmcp-agent/core": "workspace:*"
+    "@webmcp-agent/core": "workspace:*",
+    "ajv": "^8.20.0"
   }
 }

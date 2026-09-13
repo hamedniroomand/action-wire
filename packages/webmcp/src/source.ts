@@ -1,6 +1,7 @@
 import { AgentError, createEmitter, createToolRegistry } from '@webmcp-agent/core';
 import type { ToolCall, ToolResult, ToolSnapshot, ToolSource } from '@webmcp-agent/core';
 
+import { executeNativeTool } from '~/execute';
 import { getCurrentWindow, getNativeContext } from '~/native';
 import { normalizeNativeTool } from '~/normalize';
 import type { NormalizedNativeTool } from '~/normalize';
@@ -66,13 +67,15 @@ export function createWebMCPSource(): ToolSource {
       }
       return snapshot;
     },
-    async execute(call: ToolCall): Promise<ToolResult> {
-      return {
-        callId: call.id,
-        ok: false,
-        text: 'Tool execution is not available.',
-        code: 'EXECUTION_FAILED',
-      };
+    async execute(call: ToolCall, revision: number, signal?: AbortSignal): Promise<ToolResult> {
+      return executeNativeTool({
+        call,
+        revision,
+        signal,
+        disposed,
+        currentRevision: executionRevision,
+        handles,
+      });
     },
     subscribe(listener) {
       return changes.subscribe(() => {
