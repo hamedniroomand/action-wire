@@ -2,7 +2,7 @@
   "name": "webmcp-agent",
   "version": "0.1.0",
   "description": "Accessible text assistant widget for WebMCP Agent.",
-  "license": "ISC",
+  "license": "MIT",
   "files": [
     "dist"
   ],

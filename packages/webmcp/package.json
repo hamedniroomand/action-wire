@@ -2,7 +2,7 @@
   "name": "@webmcp-agent/webmcp",
   "version": "0.1.0",
   "description": "Discover and execute native WebMCP tools.",
-  "license": "ISC",
+  "license": "MIT",
   "files": [
     "dist"
   ],

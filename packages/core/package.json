@@ -2,7 +2,7 @@
   "name": "@webmcp-agent/core",
   "version": "0.1.0",
   "description": "Shared types and tool registry for WebMCP Agent.",
-  "license": "ISC",
+  "license": "MIT",
   "files": [
     "dist"
   ],

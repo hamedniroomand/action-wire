@@ -2,7 +2,7 @@
   "name": "@webmcp-agent/agent",
   "version": "0.1.0",
   "description": "Headless text agent runtime for WebMCP Agent.",
-  "license": "ISC",
+  "license": "MIT",
   "files": [
     "dist"
   ],

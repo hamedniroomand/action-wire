@@ -2,7 +2,7 @@
   "name": "example-vanilla",
   "version": "0.1.0",
   "private": true,
-  "license": "ISC",
+  "license": "MIT",
   "type": "module",
   "dependencies": {
     "@webmcp-agent/agent": "workspace:*"
