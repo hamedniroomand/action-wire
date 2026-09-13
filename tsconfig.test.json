@@ -9,6 +9,7 @@
     "playground/compatibility/*.spec.ts",
     "playground/e2e/**/*.ts",
     "playground/server/**/*.ts",
-    "packages/widget/e2e/**/*.ts"
+    "packages/widget/e2e/**/*.ts",
+    "examples/vanilla/e2e/**/*.ts"
   ]
 }

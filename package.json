@@ -21,6 +21,7 @@
     "probe": "vite playground/compatibility --config vite.config.ts --host 127.0.0.1 --port 4173 --strictPort",
     "widget:dev": "vite packages/widget/e2e --config vite.config.ts --host 127.0.0.1 --port 4174 --strictPort",
     "playground:dev": "vite --config playground/vite.config.ts",
+    "vanilla:dev": "vite --config examples/vanilla/vite.config.ts",
     "test:native": "playwright test --project chromium-webmcp --grep \"records native\""
   },
   "devDependencies": {

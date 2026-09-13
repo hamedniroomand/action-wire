@@ -1,0 +1,10 @@
+{
+  "name": "example-vanilla",
+  "version": "0.1.0",
+  "private": true,
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@webmcp-agent/agent": "workspace:*"
+  }
+}
