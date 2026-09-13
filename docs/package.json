@@ -1,0 +1,22 @@
+{
+  "name": "action-wire-docs",
+  "private": true,
+  "description": "Documentation site for Action Wire.",
+  "homepage": "https://github.com/hamedniroomand/action-wire",
+  "bugs": {
+    "url": "https://github.com/hamedniroomand/action-wire/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hamedniroomand/action-wire.git",
+    "directory": "docs"
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "undocs dev",
+    "build": "undocs build"
+  },
+  "devDependencies": {
+    "undocs": "latest"
+  }
+}
