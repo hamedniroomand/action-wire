@@ -1,8 +1,6 @@
-import { Ajv } from 'ajv';
-
-import { Ajv2020 } from '#ajv/2020';
 import { AgentError } from '~/core';
 import type { ErrorCode, Json, ToolCall, ToolResult } from '~/core';
+import { loadSchemaValidators } from '~/core/ajv';
 import { getNativeContext } from '~/webmcp/native';
 import type { NormalizedNativeTool } from '~/webmcp/normalize';
 
@@ -10,9 +8,6 @@ import type { NormalizedNativeTool } from '~/webmcp/normalize';
 const MAX_RESULT_TEXT = 8192;
 const DRAFT_7 = 'http://json-schema.org/draft-07/schema#';
 const DRAFT_2020 = 'https://json-schema.org/draft/2020-12/schema';
-
-const draft7 = new Ajv({ strict: false, allErrors: true });
-const draft2020 = new Ajv2020({ strict: false, allErrors: true });
 
 export async function executeNativeTool(input: {
   call: ToolCall;
@@ -33,7 +28,13 @@ export async function executeNativeTool(input: {
   if (handle === undefined) {
     return fail(call.id, 'TOOL_UNAVAILABLE', 'This tool is not available.');
   }
-  if (!validArguments(handle.definition.inputSchema, call.arguments)) {
+  let valid: boolean;
+  try {
+    valid = await validArguments(handle.definition.inputSchema, call.arguments);
+  } catch {
+    return fail(call.id, 'EXECUTION_FAILED', 'The schema validator could not load.');
+  }
+  if (!valid) {
     return fail(call.id, 'INVALID_ARGUMENTS', 'The tool arguments do not match the input schema.');
   }
   let context;
@@ -64,10 +65,14 @@ export async function executeNativeTool(input: {
   return normalizeResult(call.id, raw);
 }
 
-function validArguments(schema: Record<string, Json>, data: Record<string, Json>): boolean {
+async function validArguments(
+  schema: Record<string, Json>,
+  data: Record<string, Json>,
+): Promise<boolean> {
   const dialect = schema['$schema'];
   if (dialect !== undefined && dialect !== DRAFT_7 && dialect !== DRAFT_2020) return false;
-  const ajv = dialect === DRAFT_7 ? draft7 : draft2020;
+  const validators = await loadSchemaValidators();
+  const ajv = dialect === DRAFT_7 ? validators.draft7 : validators.draft2020;
   const validator = ajv.compile(JSON.parse(JSON.stringify(schema)));
   return validator(data);
 }

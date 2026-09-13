@@ -1,25 +1,20 @@
-import { Ajv } from 'ajv';
-
-import { Ajv2020 } from '#ajv/2020';
+import type { SchemaValidators } from '~/core/ajv';
 import { AgentError } from '~/core/errors';
 import type { Json } from '~/core/types';
 
-export function createSchemaValidator() {
-  const draft7 = new Ajv({ strict: false, allErrors: true });
-  const draft2020 = new Ajv2020({ strict: false, allErrors: true });
+const DRAFT_7 = 'http://json-schema.org/draft-07/schema#';
+const DRAFT_2020 = 'https://json-schema.org/draft/2020-12/schema';
+
+export function createSchemaValidator(validators: SchemaValidators) {
   return (schema: Record<string, Json>): void => {
     if (schema['type'] !== 'object') {
       throw new AgentError('INVALID_SCHEMA', 'The tool input schema must have type object.');
     }
     const dialect = schema['$schema'];
-    const validator = dialect === 'http://json-schema.org/draft-07/schema#' ? draft7 : draft2020;
-    if (
-      dialect !== undefined &&
-      dialect !== 'http://json-schema.org/draft-07/schema#' &&
-      dialect !== 'https://json-schema.org/draft/2020-12/schema'
-    ) {
+    if (dialect !== undefined && dialect !== DRAFT_7 && dialect !== DRAFT_2020) {
       throw new AgentError('INVALID_SCHEMA', 'Use JSON Schema draft-07 or draft 2020-12.');
     }
+    const validator = dialect === DRAFT_7 ? validators.draft7 : validators.draft2020;
     if (!validator.validateSchema(schema)) {
       throw new AgentError('INVALID_SCHEMA', validator.errorsText());
     }

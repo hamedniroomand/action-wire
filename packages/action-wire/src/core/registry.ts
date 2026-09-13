@@ -1,3 +1,4 @@
+import { loadSchemaValidators } from '~/core/ajv';
 import { AgentError } from '~/core/errors';
 import { copyJson, freeze } from '~/core/json';
 import { createSchemaValidator } from '~/core/schema';
@@ -6,11 +7,12 @@ import type { ToolDefinition, ToolSnapshot } from '~/core/types';
 export function createToolRegistry() {
   let snapshot: ToolSnapshot = freeze({ revision: 0, tools: [] });
   let fingerprint = '[]';
-  const validateSchema = createSchemaValidator();
 
   return {
     getSnapshot: (): ToolSnapshot => snapshot,
-    replace(tools: readonly ToolDefinition[]): ToolSnapshot {
+    // Everything after this await runs synchronously, so a replacement stays atomic.
+    async replace(tools: readonly ToolDefinition[]): Promise<ToolSnapshot> {
+      const validateSchema = createSchemaValidator(await loadSchemaValidators());
       const ids = new Set<string>();
       const names = new Set<string>();
       const next = tools.map((tool) => {
