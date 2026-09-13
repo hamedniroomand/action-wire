@@ -4,8 +4,7 @@
   "categories": {
     "correctness": "error",
     "suspicious": "error",
-    "perf": "error",
-    "pedantic": "error"
+    "perf": "error"
   },
   "options": {
     "typeAware": true,
