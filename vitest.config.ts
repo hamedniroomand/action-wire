@@ -7,6 +7,7 @@ export default defineConfig({
       'packages/*/test/**/*.test.ts',
       'playground/server/**/*.test.ts',
       'playground/test/**/*.test.ts',
+      'tests/**/*.test.ts',
     ],
     environment: 'node',
   },

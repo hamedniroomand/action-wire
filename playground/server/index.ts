@@ -60,7 +60,7 @@ async function toRequest(incoming: IncomingMessage): Promise<Request | undefined
   }
   const body = await readBody(incoming);
   if (body === undefined) return undefined;
-  return new Request(url, { method, headers, body });
+  return new Request(url, { method, headers, body: Uint8Array.from(body) });
 }
 
 async function readBody(incoming: IncomingMessage): Promise<Buffer | undefined> {
