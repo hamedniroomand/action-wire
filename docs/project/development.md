@@ -40,7 +40,9 @@ If the API is absent, it fails.
 
 ## Development servers
 
-Build the packages first. The playground and the examples load the built output.
+Only the examples load the built output. Run `pnpm build` before you start one.
+The probe, the widget fixture, and the playground load the source. They need no
+build.
 
 | Command               | Surface                       | Address                 |
 | --------------------- | ----------------------------- | ----------------------- |
@@ -54,6 +56,25 @@ Build the packages first. The playground and the examples load the built output.
 
 Open these in a [flagged browser](/guide/browser-setup), except
 `pnpm widget:dev`, which uses a fixture tool source and runs anywhere.
+
+## Talk to the assistant in the playground
+
+The playground calls a model. Put your provider key in `playground/.env` first.
+See [Model endpoint](/guide/model-endpoint). Then start one command.
+
+```sh
+pnpm playground:dev
+```
+
+It serves the dashboard on `127.0.0.1:4175` and starts the model endpoint on
+`127.0.0.1:8787` in the same process. It proxies `/api/assistant` to that port.
+Open `http://127.0.0.1:4175` in the flagged browser, then ask the assistant to
+open or delete a project.
+
+To run the model endpoint alone, use `pnpm playground:server`. The playground
+finds a running endpoint on the port and does not start a second one.
+
+`pnpm widget:dev` needs no model endpoint. It uses a scripted model.
 
 ## Build order
 

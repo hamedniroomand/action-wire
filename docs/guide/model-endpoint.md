@@ -56,7 +56,7 @@ This repository ships a small Node server for development. It is not a product.
 
 ```sh
 cp playground/.env.example playground/.env
-node playground/server/index.ts
+pnpm playground:server
 ```
 
 | Variable                   | Purpose                             |
@@ -65,8 +65,17 @@ node playground/server/index.ts
 | `ACTION_WIRE_MODEL`        | The model name to request.          |
 | `ACTION_WIRE_API_KEY`      | The provider key. Server side only. |
 
-It listens on `127.0.0.1:8787`. The Vite configurations proxy `/api/assistant`
-to that address.
+Write your provider key into `playground/.env` before you start the server. The
+copied file leaves `ACTION_WIRE_API_KEY` empty. Without a key, every request
+returns `503` and the message `Set ACTION_WIRE_UPSTREAM_URL,
+ACTION_WIRE_MODEL, and ACTION_WIRE_API_KEY.`
+
+It listens on `127.0.0.1:8787`. Set `ACTION_WIRE_PORT` to use a different port.
+The Vite configurations proxy `/api/assistant` to that address.
+
+`pnpm playground:dev` starts this endpoint for you, so you need
+`pnpm playground:server` only when you want the endpoint on its own. The key
+stays in the Node process. Vite never sends it to the browser.
 
 ::: warning
 The demo server has no authentication and no rate limit. A production route

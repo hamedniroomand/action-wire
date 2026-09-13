@@ -29,6 +29,7 @@
     "probe": "vite playground/compatibility --config vite.config.ts --host 127.0.0.1 --port 4173 --strictPort",
     "widget:dev": "vite packages/action-wire/e2e --config vite.config.ts --host 127.0.0.1 --port 4174 --strictPort",
     "playground:dev": "vite --config playground/vite.config.ts",
+    "playground:server": "node --env-file=playground/.env playground/server/index.ts",
     "vanilla:dev": "vite --config examples/vanilla/vite.config.ts",
     "react:dev": "vite --config examples/react/vite.config.ts",
     "vue:dev": "vite --config examples/vue/vite.config.ts",
