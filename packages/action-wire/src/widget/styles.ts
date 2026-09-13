@@ -216,6 +216,64 @@ export const STYLES = `
   background: var(--aw-color-raised);
 }
 
+.message > :first-child {
+  margin-top: 0;
+}
+
+.message > :last-child {
+  margin-bottom: 0;
+}
+
+.message p {
+  margin: 0 0 8px;
+}
+
+.message h1,
+.message h2,
+.message h3 {
+  margin: 12px 0 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.message ul,
+.message ol {
+  margin: 0 0 8px;
+  padding-left: 20px;
+}
+
+.message li {
+  margin: 2px 0;
+}
+
+.message code {
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: var(--aw-color-border);
+  font-family: var(--aw-font-mono);
+  font-size: 12px;
+}
+
+.message pre {
+  margin: 0 0 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--aw-color-text);
+  overflow-x: auto;
+}
+
+.message pre code {
+  padding: 0;
+  background: none;
+  color: var(--aw-color-surface);
+  white-space: pre;
+}
+
+.message a {
+  color: var(--aw-color-accent);
+  overflow-wrap: anywhere;
+}
+
 .tool-card {
   display: grid;
   grid-template-columns: 1fr auto;

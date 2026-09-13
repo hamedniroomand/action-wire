@@ -225,3 +225,21 @@ it('shows readable empty, error, and model-busy views', async () => {
   });
   failing.dispose();
 });
+
+it('renders Markdown in an assistant message but not in a user message', async () => {
+  const generate = vi.fn().mockResolvedValue({
+    text: 'You last had **Nova** open.\n\n- Phoenix\n- Orion',
+    toolCalls: [],
+  });
+  const assistant = createAssistant(options({ model: { generate } }));
+  open(assistant);
+  submit('show **me** the list');
+  await vi.waitFor(() => {
+    expect(timeline().querySelector('.message-assistant strong')?.textContent).toBe('Nova');
+  });
+  expect(timeline().querySelectorAll('.message-assistant li')).toHaveLength(2);
+  const user = timeline().querySelector('.message-user');
+  expect(user?.querySelector('strong')).toBeNull();
+  expect(user?.textContent).toBe('show **me** the list');
+  assistant.dispose();
+});

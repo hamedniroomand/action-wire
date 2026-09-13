@@ -1,6 +1,7 @@
 import type { AssistantState, Message } from '~/core';
 import { busyCopy, emptyCopy, friendlyError } from '~/widget/errors';
 import { sparkIcon } from '~/widget/icons';
+import { renderMarkdown } from '~/widget/markdown';
 import { updateToolCard } from '~/widget/tool-card';
 
 const NEAR_BOTTOM_PX = 48;
@@ -89,9 +90,11 @@ function renderMessage(message: Message): HTMLElement {
     avatar.append(sparkIcon());
     row.append(avatar);
   }
-  const bubble = document.createElement('p');
+  const bubble = document.createElement('div');
   bubble.className = `message message-${message.role}`;
-  bubble.textContent = message.content;
+  // The user typed their own text. Only the model sends Markdown.
+  if (message.role === 'assistant') bubble.append(renderMarkdown(message.content));
+  else bubble.textContent = message.content;
   row.append(bubble);
   return row;
 }
