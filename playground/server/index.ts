@@ -87,4 +87,5 @@ function isMainModule(): boolean {
 if (isMainModule()) {
   const port = Number.parseInt(process.env['ACTION_WIRE_PORT'] ?? '8787', 10);
   createAssistantServer().listen(Number.isFinite(port) ? port : 8787, '127.0.0.1');
+  console.log(`Assistant server listening on http://127.0.0.1:${port}`);
 }
