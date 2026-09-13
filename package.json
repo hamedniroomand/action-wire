@@ -22,7 +22,7 @@
     "format": "oxfmt .",
     "prepare": "husky",
     "build": "pnpm --filter action-wire build",
-    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json && tsc -p playground/tsconfig.json && tsc -p playground/test/tsconfig.json && tsc -p playground/compatibility/tsconfig.json && tsc -p playground/server/tsconfig.json && tsc -p examples/react/tsconfig.json && tsc -p examples/svelte/tsconfig.json && pnpm -r --if-present typecheck",
+    "typecheck": "pnpm build && tsc --noEmit && tsc -p tsconfig.test.json && tsc -p playground/tsconfig.json && tsc -p playground/test/tsconfig.json && tsc -p playground/compatibility/tsconfig.json && tsc -p playground/server/tsconfig.json && tsc -p examples/react/tsconfig.json && tsc -p examples/svelte/tsconfig.json && pnpm -r --if-present typecheck",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
