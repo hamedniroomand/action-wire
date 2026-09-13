@@ -2,10 +2,12 @@ import type { Assistant, AssistantState } from '@webmcp-agent/core';
 
 import { createComposer } from '~/composer';
 import { STYLES } from '~/styles';
+import { attachTimeline } from '~/timeline';
 
 export function attachShell(
   shadow: ShadowRoot,
   assistant: Assistant,
+  developerMode: boolean,
 ): (state: AssistantState) => void {
   const style = document.createElement('style');
   style.textContent = STYLES;
@@ -39,6 +41,7 @@ export function attachShell(
   header.append(title, status, close);
   const timeline = document.createElement('div');
   timeline.className = 'timeline';
+  const renderTimeline = attachTimeline(timeline, { developerMode });
   const composer = createComposer((text) => {
     if (assistant.getState().busy) return;
     void assistant.send(text);
@@ -72,6 +75,7 @@ export function attachShell(
     panel.setAttribute('aria-busy', state.busy ? 'true' : 'false');
     status.textContent = state.busy ? 'Thinking' : '';
     composer.setBusy(state.busy);
+    renderTimeline(state);
   };
 }
 

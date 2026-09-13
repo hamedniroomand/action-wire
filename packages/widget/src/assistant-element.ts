@@ -16,7 +16,7 @@ export function defineAssistantElement(): void {
       const session = sessions.get(this);
       if (session === undefined) return;
       const shadow = this.shadowRoot ?? this.attachShadow({ mode: 'open' });
-      this.#sync ??= attachShell(shadow, session.assistant);
+      this.#sync ??= attachShell(shadow, session.assistant, session.developerMode);
       this.#unsubscribe?.();
       this.#unsubscribe = session.assistant.subscribe((state) => {
         this.#sync?.(state);

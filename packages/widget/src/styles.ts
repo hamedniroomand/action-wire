@@ -148,4 +148,50 @@ export const STYLES = `
   cursor: not-allowed;
   opacity: 0.5;
 }
+
+.message {
+  margin: 0 0 8px;
+  max-width: 90%;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.message-user {
+  margin-left: auto;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--wa-color-user);
+}
+
+.tool-card {
+  margin: 0 0 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--wa-color-border);
+  border-radius: 12px;
+  background: #f9fafb;
+  color: var(--wa-color-muted);
+  font-size: 13px;
+}
+
+.tool-name {
+  color: var(--wa-color-text);
+  font-weight: 600;
+}
+
+.tool-raw {
+  margin: 8px 0 0;
+  overflow: auto;
+  font-size: 12px;
+}
+
+.timeline-empty,
+.timeline-busy,
+.timeline-error {
+  margin: 0 0 8px;
+  color: var(--wa-color-muted);
+}
+
+.timeline-error {
+  color: #b91c1c;
+}
 `;
