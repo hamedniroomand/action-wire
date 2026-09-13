@@ -56,6 +56,16 @@ export default defineConfig({
         launchOptions: { args: ['--enable-experimental-web-platform-features'] },
       },
     },
+    {
+      name: 'vue-example',
+      testDir: './examples/vue/e2e',
+      testMatch: '**/*.spec.ts',
+      use: {
+        browserName: 'chromium',
+        baseURL: 'http://127.0.0.1:4178',
+        launchOptions: { args: ['--enable-experimental-web-platform-features'] },
+      },
+    },
   ],
   webServer: [
     { command: 'pnpm probe', url: 'http://127.0.0.1:4173', reuseExistingServer: false },
@@ -63,5 +73,6 @@ export default defineConfig({
     { command: 'pnpm playground:dev', url: 'http://127.0.0.1:4175', reuseExistingServer: false },
     { command: 'pnpm vanilla:dev', url: 'http://127.0.0.1:4176', reuseExistingServer: false },
     { command: 'pnpm react:dev', url: 'http://127.0.0.1:4177', reuseExistingServer: false },
+    { command: 'pnpm vue:dev', url: 'http://127.0.0.1:4178', reuseExistingServer: false },
   ],
 });

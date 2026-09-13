@@ -11,6 +11,7 @@
     "playground/server/**/*.ts",
     "packages/widget/e2e/**/*.ts",
     "examples/vanilla/e2e/**/*.ts",
-    "examples/react/e2e/**/*.ts"
+    "examples/react/e2e/**/*.ts",
+    "examples/vue/e2e/**/*.ts"
   ]
 }

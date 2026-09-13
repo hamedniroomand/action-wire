@@ -23,6 +23,7 @@
     "playground:dev": "vite --config playground/vite.config.ts",
     "vanilla:dev": "vite --config examples/vanilla/vite.config.ts",
     "react:dev": "vite --config examples/react/vite.config.ts",
+    "vue:dev": "vite --config examples/vue/vite.config.ts",
     "test:native": "playwright test --project chromium-webmcp --grep \"records native\""
   },
   "devDependencies": {
