@@ -1,0 +1,43 @@
+{
+  "name": "action-wire",
+  "version": "0.1.0",
+  "description": "A text assistant widget that uses the WebMCP tools a page already registered.",
+  "keywords": [
+    "agent",
+    "assistant",
+    "model-context",
+    "web-component",
+    "webmcp"
+  ],
+  "homepage": "https://github.com/hamedniroomand/action-wire",
+  "bugs": {
+    "url": "https://github.com/hamedniroomand/action-wire/issues"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hamedniroomand/action-wire.git",
+    "directory": "packages/action-wire"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "imports": {
+    "#ajv/2020": "ajv/dist/2020.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p test/tsconfig.json && tsc -p e2e/tsconfig.json"
+  },
+  "dependencies": {
+    "ajv": "^8.20.0"
+  }
+}

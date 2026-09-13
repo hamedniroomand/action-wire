@@ -1,6 +1,5 @@
 <script setup lang="ts">
-  import { openAICompatible } from '@action-wire/agent';
-  import { createAssistant } from 'action-wire';
+  import { createAssistant, openAICompatible } from 'action-wire';
   import { onMounted, onUnmounted, ref } from 'vue';
 
   const live = ref(true);

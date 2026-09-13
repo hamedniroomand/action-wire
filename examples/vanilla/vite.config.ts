@@ -10,10 +10,7 @@ export default defineConfig({
   root,
   resolve: {
     alias: {
-      'action-wire': path.join(packages, 'widget/dist/index.js'),
-      '@action-wire/agent': path.join(packages, 'agent/dist/index.js'),
-      '@action-wire/core': path.join(packages, 'core/dist/index.js'),
-      '@action-wire/webmcp': path.join(packages, 'webmcp/dist/index.js'),
+      'action-wire': path.join(packages, 'action-wire/dist/index.js'),
     },
   },
   server: {

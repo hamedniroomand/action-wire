@@ -4,8 +4,11 @@
   "private": true,
   "license": "MIT",
   "type": "module",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
   "dependencies": {
-    "@action-wire/agent": "workspace:*",
+    "action-wire": "workspace:*",
     "svelte": "^5.57.0"
   },
   "devDependencies": {

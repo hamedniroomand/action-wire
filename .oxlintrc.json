@@ -14,5 +14,40 @@
   "rules": {},
   "env": {
     "builtin": true
-  }
+  },
+  "overrides": [
+    {
+      "files": ["packages/action-wire/src/core/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": ["~/agent", "~/agent/*", "~/webmcp", "~/webmcp/*", "~/widget", "~/widget/*"]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["packages/action-wire/src/webmcp/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": ["~/agent", "~/agent/*", "~/widget", "~/widget/*"]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["packages/action-wire/src/agent/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": ["~/webmcp", "~/webmcp/*", "~/widget", "~/widget/*"]
+          }
+        ]
+      }
+    }
+  ]
 }

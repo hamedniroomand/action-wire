@@ -121,7 +121,7 @@ it('binds the demo server to loopback', async () => {
 });
 
 it('keeps provider secrets out of the browser adapter', () => {
-  const agentRoot = join(here, '../../packages/agent/src');
+  const agentRoot = join(here, '../../packages/action-wire/src/agent');
   const files = readdirSync(agentRoot).filter((name) => name.endsWith('.ts'));
   expect(files.length).toBeGreaterThan(0);
   for (const name of files) {

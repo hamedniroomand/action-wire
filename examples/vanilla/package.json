@@ -5,6 +5,6 @@
   "license": "MIT",
   "type": "module",
   "dependencies": {
-    "@action-wire/agent": "workspace:*"
+    "action-wire": "workspace:*"
   }
 }

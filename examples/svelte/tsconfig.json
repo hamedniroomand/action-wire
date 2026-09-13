@@ -5,8 +5,7 @@
     "types": [],
     "noEmit": true,
     "paths": {
-      "action-wire": ["../../packages/widget/dist/index.d.ts"],
-      "@action-wire/agent": ["../../packages/agent/dist/index.d.ts"]
+      "action-wire": ["../../packages/action-wire/dist/index.d.ts"]
     }
   },
   "include": ["src/**/*.ts"]

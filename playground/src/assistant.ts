@@ -1,5 +1,4 @@
-import { openAICompatible } from '@action-wire/agent';
-import { createAssistant } from 'action-wire';
+import { createAssistant, openAICompatible } from 'action-wire';
 
 export function mountAssistant(): void {
   createAssistant({

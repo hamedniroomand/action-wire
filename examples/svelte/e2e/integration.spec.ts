@@ -45,9 +45,8 @@ test('uses the same built library output as Vanilla, React, and Vue', async () =
     ),
   );
   for (const text of configs) {
-    expect(text).toContain('widget/dist/index.js');
-    expect(text).toContain('agent/dist/index.js');
-    expect(text).not.toContain('widget/src/index.ts');
+    expect(text).toContain('action-wire/dist/index.js');
+    expect(text).not.toContain('action-wire/src/index.ts');
   }
 });
 

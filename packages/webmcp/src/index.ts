@@ -1,1 +1,0 @@
-export { createWebMCPSource } from '~/source';

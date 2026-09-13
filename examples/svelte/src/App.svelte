@@ -1,7 +1,6 @@
 <script lang="ts">
-  import { openAICompatible } from '@action-wire/agent';
   import { onDestroy, onMount } from 'svelte';
-  import { createAssistant } from 'action-wire';
+  import { createAssistant, openAICompatible } from 'action-wire';
 
   let live = $state(true);
   let label = $state('idle');

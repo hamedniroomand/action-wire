@@ -7,59 +7,34 @@ import { fileURLToPath } from 'node:url';
 import { expect, it } from 'vitest';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
-const PACKAGES = ['core', 'webmcp', 'agent', 'widget'] as const;
+const PACKAGE = 'action-wire';
 
 it('packs installable ESM packages without workspace aliases', () => {
-  execFileSync(
-    'pnpm',
-    [
-      '--filter',
-      './packages/core',
-      '--filter',
-      './packages/webmcp',
-      '--filter',
-      './packages/agent',
-      '--filter',
-      './packages/widget',
-      'build',
-    ],
-    { cwd: root },
-  );
+  execFileSync('pnpm', ['--filter', PACKAGE, 'build'], { cwd: root });
 
-  for (const name of PACKAGES) {
-    for (const file of jsFiles(path.join(root, 'packages', name, 'dist'))) {
-      expect(readFileSync(file, 'utf8'), file).not.toMatch(/from ['"]~\//);
-    }
-    const pkg = readPkg(path.join(root, 'packages', name, 'package.json'));
-    expect(pkg['files']).toEqual(['dist']);
-    expect(pkg['type']).toBe('module');
-    const dependencies = {
-      ...asRecord(pkg['dependencies']),
-      ...asRecord(pkg['devDependencies']),
-      ...asRecord(pkg['peerDependencies']),
-    };
-    for (const banned of [
-      'react',
-      'vue',
-      'svelte',
-      'livekit-client',
-      'openai-realtime',
-      'webrtc',
-    ]) {
-      expect(dependencies[banned], `${name} must not depend on ${banned}`).toBeUndefined();
-    }
+  const packageDir = path.join(root, 'packages', PACKAGE);
+  for (const file of jsFiles(path.join(packageDir, 'dist'))) {
+    expect(readFileSync(file, 'utf8'), file).not.toMatch(/from ['"]~\//);
+  }
+  const pkg = readPkg(path.join(packageDir, 'package.json'));
+  expect(pkg['files']).toEqual(['dist']);
+  expect(pkg['type']).toBe('module');
+  expect(pkg['sideEffects']).toBe(false);
+  const dependencies = {
+    ...asRecord(pkg['dependencies']),
+    ...asRecord(pkg['devDependencies']),
+    ...asRecord(pkg['peerDependencies']),
+  };
+  for (const banned of ['react', 'vue', 'svelte', 'livekit-client', 'openai-realtime', 'webrtc']) {
+    expect(dependencies[banned], `${PACKAGE} must not depend on ${banned}`).toBeUndefined();
   }
 
   const packs = mkdtempSync(path.join(tmpdir(), 'webmcp-pack-'));
   const consumer = mkdtempSync(path.join(tmpdir(), 'webmcp-consumer-'));
   try {
-    for (const name of PACKAGES) {
-      execFileSync('pnpm', ['pack', '--pack-destination', packs], {
-        cwd: path.join(root, 'packages', name),
-      });
-    }
+    execFileSync('pnpm', ['pack', '--pack-destination', packs], { cwd: packageDir });
     const tarballs = readdirSync(packs).filter((name) => name.endsWith('.tgz'));
-    expect(tarballs).toHaveLength(4);
+    expect(tarballs).toHaveLength(1);
     const widgetTar = tarballs.find((name) => /^action-wire-\d/.test(name));
     expect(widgetTar).toBeDefined();
     if (widgetTar !== undefined) {
@@ -82,24 +57,22 @@ it('packs installable ESM packages without workspace aliases', () => {
 
     const installed = readPkg(path.join(consumer, 'node_modules/action-wire/package.json'));
     expect(JSON.stringify(installed)).not.toContain('workspace:');
-    expect(
-      JSON.stringify(readPkg(path.join(consumer, 'node_modules/@action-wire/agent/package.json'))),
-    ).not.toContain('workspace:');
+    expect(Object.keys(asRecord(installed['dependencies']))).toEqual(['ajv']);
 
     const result = execFileSync(
       process.execPath,
       [
         '--input-type=module',
         '-e',
-        "import { createToolRegistry } from '@action-wire/core'; import { createAgentBridge } from '@action-wire/agent'; import { createAssistant } from 'action-wire'; import { createWebMCPSource } from '@action-wire/webmcp'; createToolRegistry(); console.log([typeof createAgentBridge, typeof createAssistant, typeof createWebMCPSource].join(' '));",
+        "import { createAgentBridge, createAssistant, createWebMCPSource, openAICompatible } from 'action-wire'; console.log([typeof createAgentBridge, typeof createAssistant, typeof createWebMCPSource, typeof openAICompatible].join(' '));",
       ],
       { cwd: consumer, encoding: 'utf8' },
     );
-    expect(result.trim()).toBe('function function function');
+    expect(result.trim()).toBe('function function function function');
 
     writeFileSync(
       path.join(consumer, 'check.ts'),
-      "import { createAssistant } from 'action-wire';\nimport { openAICompatible } from '@action-wire/agent';\nimport { createToolRegistry } from '@action-wire/core';\nimport { createWebMCPSource } from '@action-wire/webmcp';\nexport const registry = createToolRegistry();\nexport const source = createWebMCPSource;\nexport const model = openAICompatible;\nexport const assistant = createAssistant;\n",
+      "import { AgentError, createAssistant, createWebMCPSource, openAICompatible } from 'action-wire';\nimport type { ToolSource } from 'action-wire';\nexport const error = new AgentError('BUSY', 'busy');\nexport const source: () => ToolSource = createWebMCPSource;\nexport const model = openAICompatible;\nexport const assistant = createAssistant;\n",
     );
     writeFileSync(
       path.join(consumer, 'tsconfig.json'),

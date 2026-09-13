@@ -64,12 +64,12 @@ for (const host of HOSTS) {
 
 test('does not add voice, React, Vue, or Svelte to browser packages', async () => {
   const root = join(dirname(fileURLToPath(import.meta.url)), '../..');
-  const files = await Promise.all(
-    (['core', 'webmcp', 'agent', 'widget'] as const).map(async (name) => ({
-      name,
-      raw: await readFile(join(root, 'packages', name, 'package.json'), 'utf8'),
-    })),
-  );
+  const files = [
+    {
+      name: 'action-wire',
+      raw: await readFile(join(root, 'packages/action-wire/package.json'), 'utf8'),
+    },
+  ];
   for (const { name, raw } of files) {
     const pkg: unknown = JSON.parse(raw);
     const record = typeof pkg === 'object' && pkg !== null ? pkg : {};
