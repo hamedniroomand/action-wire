@@ -2,3 +2,9 @@ node_modules
 .env*
 !.env.example
 docs/superpowers/
+
+dist/
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo

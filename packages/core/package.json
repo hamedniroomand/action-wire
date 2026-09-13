@@ -1,0 +1,23 @@
+{
+  "name": "@webmcp-agent/core",
+  "version": "0.1.0",
+  "description": "Shared types and tool registry for WebMCP Agent.",
+  "license": "ISC",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "ajv": "^8.20.0"
+  }
+}

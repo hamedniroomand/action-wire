@@ -1,0 +1,17 @@
+{
+  "browser": "153.0.8010.12",
+  "flags": [],
+  "status": "unsupported",
+  "message": "This browser does not expose the required document.modelContext WebMCP API.",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+  "secureContext": true,
+  "origin": "http://127.0.0.1:4173",
+  "api": {
+    "registerTool": "undefined",
+    "getTools": "undefined",
+    "executeTool": "undefined",
+    "addEventListener": "undefined",
+    "removeEventListener": "undefined"
+  },
+  "handlerCalls": 0
+}
