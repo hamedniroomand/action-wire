@@ -1,5 +1,6 @@
 import { createEmitter } from '~/core';
 import type { AssistantState } from '~/core';
+import { freeze } from '~/core/json';
 
 const empty: AssistantState = Object.freeze({
   timeline: Object.freeze([]),
@@ -50,12 +51,4 @@ function freezeState(value: AssistantState): AssistantState {
     busy: value.busy,
     ...(value.error === undefined ? {} : { error: value.error }),
   });
-}
-
-function freeze<T>(value: T): T {
-  if (value !== null && typeof value === 'object') {
-    for (const child of Object.values(value)) freeze(child);
-    Object.freeze(value);
-  }
-  return value;
 }

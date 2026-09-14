@@ -1,4 +1,5 @@
 import type { ContextItem } from '~/core';
+import { button, el, text } from '~/widget/dom';
 
 export type ContextHandlers = {
   remove: (id: string) => void;
@@ -24,28 +25,20 @@ export function createContextRow(root: ParentNode, handlers: ContextHandlers): C
       }
       row.hidden = false;
       for (const item of items) {
-        const chip = el('span', 'context-chip');
-        const label = document.createElement('span');
-        label.className = 'context-label';
-        label.textContent = item.label;
-        const remove = document.createElement('button');
-        remove.type = 'button';
-        remove.className = 'context-remove';
-        remove.setAttribute('aria-label', `Remove ${item.label}`);
-        remove.textContent = '×';
-        remove.addEventListener('click', () => {
-          handlers.remove(item.id);
-          handlers.focusComposer();
-        });
-        chip.append(label, remove);
-        row.append(chip);
+        row.append(chip(item, handlers));
       }
     },
   };
 }
 
-function el(tag: string, className: string): HTMLElement {
-  const node = document.createElement(tag);
-  node.className = className;
+function chip(item: ContextItem, handlers: ContextHandlers): HTMLElement {
+  const node = el('span', 'context-chip');
+  const remove = button('context-remove', `Remove ${item.label}`);
+  remove.textContent = '×';
+  remove.addEventListener('click', () => {
+    handlers.remove(item.id);
+    handlers.focusComposer();
+  });
+  node.append(text('span', 'context-label', item.label), remove);
   return node;
 }

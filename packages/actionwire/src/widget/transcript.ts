@@ -1,4 +1,5 @@
 import type { Activity, AssistantState, Message } from '~/core';
+import { button, child, el, text, textButton } from '~/widget/dom';
 import { closeIcon } from '~/widget/icons';
 import { renderMarkdown } from '~/widget/markdown';
 
@@ -27,24 +28,14 @@ export function createTranscript(
   root.className = 'transcript';
   root.setAttribute('aria-label', 'Transcript');
   root.hidden = true;
-  const head = document.createElement('div');
-  head.className = 'transcript-head';
-  const title = document.createElement('span');
-  title.textContent = 'This session';
-  const actions = document.createElement('span');
-  const clear = document.createElement('button');
-  clear.type = 'button';
-  clear.className = 'pill';
-  clear.textContent = 'clear';
-  const close = document.createElement('button');
-  close.type = 'button';
-  close.className = 'ibtn';
-  close.setAttribute('aria-label', 'Close transcript');
+  const head = el('div', 'transcript-head');
+  const actions = el('span', '');
+  const clear = textButton('pill', 'clear');
+  const close = button('ibtn', 'Close transcript');
   close.append(closeIcon());
   actions.append(clear, close);
-  head.append(title, actions);
-  const entries = document.createElement('div');
-  entries.className = 'entries';
+  head.append(text('span', '', 'This session'), actions);
+  const entries = el('div', 'entries');
   root.append(head, entries);
   clear.addEventListener('click', handlers.clear);
   close.addEventListener('click', handlers.close);
@@ -106,13 +97,9 @@ function entryNode(
 }
 
 function renderMessage(message: Message): HTMLElement {
-  const node = document.createElement('div');
-  node.className = `entry entry-${message.role}`;
-  const role = document.createElement('span');
-  role.className = 'role';
-  role.textContent = message.role === 'user' ? 'you' : 'assistant';
-  const content = document.createElement('div');
-  content.className = 'content';
+  const node = el('div', `entry entry-${message.role}`);
+  const role = text('span', 'role', message.role === 'user' ? 'you' : 'assistant');
+  const content = el('div', 'content');
   if (message.role === 'assistant') content.append(renderMarkdown(message.content));
   else content.textContent = message.content;
   node.append(role, content);
@@ -139,15 +126,6 @@ function updateTool(node: HTMLElement, activity: Activity, developerMode: boolea
     raw.hidden = true;
     raw.textContent = '';
   }
-}
-
-function child(parent: HTMLElement, className: string, tag = 'span'): HTMLElement {
-  const existing = parent.querySelector(`.${className}`);
-  if (existing instanceof HTMLElement) return existing;
-  const node = document.createElement(tag);
-  node.className = className;
-  parent.append(node);
-  return node;
 }
 
 function isNearBottom(root: HTMLElement): boolean {

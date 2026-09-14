@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 
 import type { ToolDefinition } from '~/core';
-import { parseProposalDraft } from '~/widget/proposal';
+import { parseProposalDraft } from '~/widget/fields';
 
 const tool: ToolDefinition = {
   id: 'write',

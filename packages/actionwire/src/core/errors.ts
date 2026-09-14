@@ -1,3 +1,5 @@
+import type { ToolResult } from '~/core/types';
+
 export type ErrorCode =
   | 'UNSUPPORTED_WEBMCP'
   | 'DISCOVERY_FAILED'
@@ -25,4 +27,12 @@ export class AgentError extends Error {
   ) {
     super(message, options);
   }
+}
+
+export function failResult(callId: string, code: ErrorCode, text: string): ToolResult {
+  return { callId, ok: false, text, code };
+}
+
+export function isAbortError(error: unknown): boolean {
+  return typeof error === 'object' && error !== null && Reflect.get(error, 'name') === 'AbortError';
 }

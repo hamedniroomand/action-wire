@@ -1,9 +1,5 @@
 import type { ErrorCode } from '~/core';
 
-export function emptyCopy(): string {
-  return 'Send a message to start.';
-}
-
 export function busyCopy(): string {
   return 'The assistant is thinking…';
 }

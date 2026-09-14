@@ -1,5 +1,6 @@
 import { AgentError } from '~/core';
 import type { Json, ToolDefinition } from '~/core';
+import { isJson } from '~/core/json';
 import type { NativeRegisteredTool } from '~/webmcp/native';
 
 export type NativeEncoding = 'json-string' | 'object';
@@ -69,14 +70,4 @@ function asSchemaObject(value: unknown): Record<string, Json> {
     throw new AgentError('INVALID_SCHEMA', 'The tool input schema must be an object.');
   }
   return value;
-}
-
-function isJson(value: unknown): value is Json {
-  if (value === null || typeof value === 'boolean' || typeof value === 'string') return true;
-  if (typeof value === 'number') return Number.isFinite(value);
-  if (Array.isArray(value)) return value.every(isJson);
-  if (typeof value !== 'object') return false;
-  const proto = Object.getPrototypeOf(value);
-  if (proto !== Object.prototype && proto !== null) return false;
-  return Object.values(value).every(isJson);
 }

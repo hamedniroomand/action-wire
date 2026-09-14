@@ -1,13 +1,8 @@
 import { expect, it, vi } from 'vitest';
 
 import { createAgentBridge } from '~/agent/bridge';
-import {
-  freezeProposal,
-  initialProposal,
-  invalidateDependents,
-  prepareProposal,
-  publishPreparedProposal,
-} from '~/agent/proposals';
+import { prepareProposal, publishPreparedProposal } from '~/agent/preview';
+import { freezeProposal, initialProposal, invalidateDependents } from '~/agent/proposals';
 import type { ToolDefinition, ToolSource } from '~/core';
 
 const write: ToolDefinition = {

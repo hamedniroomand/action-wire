@@ -35,3 +35,13 @@ export function freeze<T>(value: T): T {
   }
   return value;
 }
+
+export function isJson(value: unknown): value is Json {
+  if (value === null || typeof value === 'boolean' || typeof value === 'string') return true;
+  if (typeof value === 'number') return Number.isFinite(value);
+  if (Array.isArray(value)) return value.every(isJson);
+  if (typeof value !== 'object') return false;
+  const proto = Object.getPrototypeOf(value);
+  if (proto !== Object.prototype && proto !== null) return false;
+  return Object.values(value).every(isJson);
+}
