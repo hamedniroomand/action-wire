@@ -80,6 +80,7 @@ function patchProposal(
 export function createAgentBridge(options: BridgeOptions): Assistant {
   const session = createSessionStore();
   const context = createContextController(options.context);
+  const debug = options.debug === true;
   const maxRounds = options.maxRounds ?? DEFAULT_ROUNDS;
   const timeoutMs = assertPositiveMs(options.timeoutMs ?? DEFAULT_TIMEOUT_MS, 'timeoutMs')!;
   const reviewTimeoutMs = assertPositiveMs(options.reviewTimeoutMs, 'reviewTimeoutMs');
@@ -152,6 +153,10 @@ export function createAgentBridge(options: BridgeOptions): Assistant {
       await runTurn(currentTurn.signal, epoch);
     } catch (error) {
       if (!activeTurn(epoch)) return;
+      logTurnDebug(debug, 'failed', {
+        code: error instanceof AgentError ? error.code : 'MODEL_ERROR',
+        message: error instanceof Error ? error.message : String(error),
+      });
       session.update((state) => ({
         ...state,
         busy: false,
@@ -717,6 +722,11 @@ function patchActivity(
 
 function withInstructions(messages: readonly Message[]): readonly Message[] {
   return [{ role: 'system', content: SAFETY_INSTRUCTIONS }, ...messages];
+}
+
+function logTurnDebug(enabled: boolean, step: string, detail: Record<string, unknown>): void {
+  if (!enabled) return;
+  console.warn('[action-wire:turn]', step, detail);
 }
 
 function toModelMessages(messages: readonly Message[]): readonly Message[] {

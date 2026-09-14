@@ -132,6 +132,7 @@ export type BridgeOptions = {
   maxRounds?: number;
   timeoutMs?: number;
   reviewTimeoutMs?: number;
+  debug?: boolean;
 };
 export type AssistantOptions = {
   model: AgentAdapter;

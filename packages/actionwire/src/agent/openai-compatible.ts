@@ -3,52 +3,152 @@ import type { AliasTable } from '~/agent/alias';
 import { AgentError } from '~/core';
 import type { AgentAdapter, AgentTurn, Json, Message, ToolCall } from '~/core';
 
-export function openAICompatible(options: { endpoint: string }): AgentAdapter {
+export type OpenAICompatibleOptions = {
+  endpoint: string;
+  debug?: boolean;
+};
+
+const LOG_BODY_MAX = 12_000;
+
+export function openAICompatible(options: OpenAICompatibleOptions): AgentAdapter {
   const aliases = createAliasTable();
+  const debug = options.debug === true;
   return {
     async generate(input): Promise<AgentTurn> {
       const names = new Map(input.tools.map((tool) => [aliases.aliasFor(tool), tool.id]));
+      let body: string;
+      try {
+        body = JSON.stringify({
+          messages: input.messages.map((message) => toProviderMessage(message, aliases)),
+          tools: input.tools.map((tool) => ({
+            type: 'function',
+            function: {
+              name: aliases.aliasFor(tool),
+              description:
+                tool.title === undefined ? tool.description : `${tool.title}. ${tool.description}`,
+              parameters: tool.inputSchema,
+            },
+          })),
+        });
+      } catch (error) {
+        logModelDebug(debug, 'request-serialize', {
+          error: String(error),
+          messageCount: input.messages.length,
+          toolCount: input.tools.length,
+        });
+        throw new AgentError('MODEL_ERROR', 'The model request failed.', { cause: error });
+      }
+      logModelDebug(debug, 'request', {
+        messageCount: input.messages.length,
+        toolCount: input.tools.length,
+      });
       let response: Response;
       try {
         response = await fetch(options.endpoint, {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({
-            messages: input.messages.map((message) => toProviderMessage(message, aliases)),
-            tools: input.tools.map((tool) => ({
-              type: 'function',
-              function: {
-                name: aliases.aliasFor(tool),
-                description:
-                  tool.title === undefined
-                    ? tool.description
-                    : `${tool.title}. ${tool.description}`,
-                parameters: tool.inputSchema,
-              },
-            })),
-          }),
+          body,
           ...(input.signal === undefined ? {} : { signal: input.signal }),
         });
       } catch (error) {
         if (isAbortError(error)) {
           throw new AgentError('ABORTED', 'The model request was aborted.', { cause: error });
         }
+        logModelDebug(debug, 'fetch', { error: String(error) });
         throw new AgentError('MODEL_ERROR', 'The model request failed.', { cause: error });
       }
+      const bodyText = await response.text();
       if (!response.ok) {
+        logModelDebug(debug, 'http', {
+          status: response.status,
+          body: clipForLog(bodyText),
+        });
         throw new AgentError('MODEL_ERROR', 'The model request failed.');
       }
       let payload: unknown;
       try {
-        payload = JSON.parse(await response.text());
+        payload = JSON.parse(bodyText);
       } catch (error) {
+        logModelDebug(debug, 'json', { body: clipForLog(bodyText) });
         throw new AgentError('MODEL_ERROR', 'The model response is not valid JSON.', {
           cause: error,
         });
       }
-      return parseTurn(payload, names);
+      try {
+        return parseTurn(payload, names);
+      } catch (error) {
+        if (error instanceof AgentError && error.code === 'MODEL_ERROR') {
+          logModelDebug(debug, 'parse', {
+            message: error.message,
+            shape: describePayload(payload),
+            payload: payloadForLog(payload),
+          });
+        }
+        throw error;
+      }
     },
   };
+}
+
+function logModelDebug(enabled: boolean, step: string, detail: Record<string, unknown>): void {
+  if (!enabled) return;
+  console.warn('[action-wire:model]', step, detail);
+}
+
+function clipForLog(value: string): string {
+  if (value.length <= LOG_BODY_MAX) return value;
+  return `${value.slice(0, LOG_BODY_MAX)}… (${value.length} chars)`;
+}
+
+function payloadForLog(payload: unknown): unknown {
+  try {
+    const text = JSON.stringify(payload);
+    if (text.length <= LOG_BODY_MAX) return payload;
+    return { clipped: clipForLog(text) };
+  } catch {
+    return String(payload);
+  }
+}
+
+function describePayload(payload: unknown): Record<string, unknown> {
+  if (typeof payload !== 'object' || payload === null || Array.isArray(payload)) {
+    return { kind: Array.isArray(payload) ? 'array' : typeof payload };
+  }
+  const choices = Reflect.get(payload, 'choices');
+  const error = Reflect.get(payload, 'error');
+  const choice = Array.isArray(choices) ? choices[0] : undefined;
+  const message =
+    typeof choice === 'object' && choice !== null ? Reflect.get(choice, 'message') : undefined;
+  const toolCalls =
+    typeof message === 'object' && message !== null
+      ? Reflect.get(message, 'tool_calls')
+      : undefined;
+  return {
+    keys: Object.keys(payload),
+    choicesLength: Array.isArray(choices) ? choices.length : null,
+    errorMessage:
+      typeof error === 'object' && error !== null ? Reflect.get(error, 'message') : undefined,
+    messageKeys:
+      typeof message === 'object' && message !== null && !Array.isArray(message)
+        ? Object.keys(message)
+        : undefined,
+    contentKind:
+      typeof message === 'object' && message !== null
+        ? contentKind(Reflect.get(message, 'content'))
+        : undefined,
+    toolCallsLength: Array.isArray(toolCalls) ? toolCalls.length : null,
+    reasoningContent:
+      typeof message === 'object' && message !== null
+        ? Reflect.has(message, 'reasoning_content')
+        : false,
+  };
+}
+
+function contentKind(content: unknown): string {
+  if (content === null || content === undefined) return 'empty';
+  if (typeof content === 'string') return 'string';
+  if (Array.isArray(content)) return 'array';
+  return typeof content;
 }
 
 function toProviderMessage(message: Message, aliases: AliasTable): Record<string, unknown> {

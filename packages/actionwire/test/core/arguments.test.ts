@@ -30,3 +30,11 @@ it('rejects unsupported schema dialects', () => {
     ),
   ).toBe(false);
 });
+
+it('validates against a frozen schema from the tool registry', () => {
+  const schema = Object.freeze({
+    type: 'object',
+    additionalProperties: false,
+  }) as Record<string, Json>;
+  expect(validateToolArguments(schema, {})).toBe(true);
+});

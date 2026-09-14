@@ -7,7 +7,11 @@ import { assertChartVersion } from './reports';
 
 export function mountAssistant(projects: Projects, reports: Reports): () => void {
   const assistant = createAssistant({
-    model: openAICompatible({ endpoint: '/api/assistant' }),
+    developerMode: import.meta.env.DEV,
+    model: openAICompatible({
+      endpoint: '/api/assistant',
+      debug: import.meta.env.DEV,
+    }),
     context: createReportsContext(projects, reports),
     review: {
       previewTools: { createReport: 'previewReport' },

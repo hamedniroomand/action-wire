@@ -25,6 +25,7 @@ export function createAssistant(options: AssistantOptions): MountedAssistant {
         : { reviewTimeoutMs: options.reviewTimeoutMs }),
       ...(options.context === undefined ? {} : { context: options.context }),
       ...(options.review === undefined ? {} : { review: options.review }),
+      ...(options.developerMode === true ? { debug: true } : {}),
     });
     bridge = next;
     return next;

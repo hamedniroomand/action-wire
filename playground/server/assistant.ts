@@ -2,6 +2,7 @@ export type AssistantEnv = {
   readonly ACTIONWIRE_UPSTREAM_URL?: string;
   readonly ACTIONWIRE_MODEL?: string;
   readonly ACTIONWIRE_API_KEY?: string;
+  readonly ACTIONWIRE_DEBUG?: string;
 };
 
 export type FetchLike = (url: string, init: RequestInit) => Promise<Response>;
@@ -42,6 +43,10 @@ export async function handleAssistantRequest(
   if (payload === undefined) {
     return fail(400, 'The request body is invalid.');
   }
+  logUpstream(env, 'request', {
+    messages: payload.messages.length,
+    tools: payload.tools?.length ?? 0,
+  });
   let upstreamResponse: Response;
   try {
     upstreamResponse = await fetchImpl(upstream, {
@@ -61,15 +66,21 @@ export async function handleAssistantRequest(
     if (isAbortError(error)) {
       return fail(499, 'The model request was aborted.');
     }
+    logUpstream(env, 'fetch', { error: String(error) });
     return fail(502, 'The model request failed.');
   }
+  const text = await upstreamResponse.text();
   if (!upstreamResponse.ok) {
+    logUpstream(env, 'upstream-http', {
+      status: upstreamResponse.status,
+      body: clipForLog(text),
+    });
     return fail(upstreamResponse.status === 429 ? 429 : 502, 'The model request failed.');
   }
-  const text = await upstreamResponse.text();
   try {
     JSON.parse(text);
   } catch {
+    logUpstream(env, 'upstream-json', { body: clipForLog(text) });
     return fail(502, 'The model request failed.');
   }
   return new Response(text, {
@@ -120,4 +131,23 @@ function fail(status: number, message: string): Response {
 
 function isAbortError(error: unknown): boolean {
   return typeof error === 'object' && error !== null && Reflect.get(error, 'name') === 'AbortError';
+}
+
+const LOG_BODY_MAX = 12_000;
+
+function debugEnabled(env: AssistantEnv): boolean {
+  const value = readSetting(env.ACTIONWIRE_DEBUG);
+  if (value === undefined) return false;
+  const normalized = value.toLowerCase();
+  return normalized === '1' || normalized === 'true' || normalized === 'yes';
+}
+
+function logUpstream(env: AssistantEnv, step: string, detail: Record<string, unknown>): void {
+  if (!debugEnabled(env)) return;
+  console.warn('[action-wire:assistant]', step, detail);
+}
+
+function clipForLog(value: string): string {
+  if (value.length <= LOG_BODY_MAX) return value;
+  return `${value.slice(0, LOG_BODY_MAX)}… (${value.length} chars)`;
 }

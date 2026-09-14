@@ -19,6 +19,8 @@ export function validateToolArguments(
 ): boolean {
   const dialect = schema['$schema'];
   if (dialect !== undefined && dialect !== DRAFT_7 && dialect !== DRAFT_2020) return false;
-  const validator = new Validator(schema, dialect === DRAFT_7 ? '7' : '2020-12');
+  const mutable = copyJson(schema);
+  if (typeof mutable !== 'object' || mutable === null || Array.isArray(mutable)) return false;
+  const validator = new Validator(mutable, dialect === DRAFT_7 ? '7' : '2020-12');
   return validator.validate(data).valid;
 }

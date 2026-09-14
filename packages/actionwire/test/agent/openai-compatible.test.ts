@@ -216,16 +216,14 @@ it.each([
   ['429', jsonResponse(429, { error: { message: 'rate limit' } }), 'MODEL_ERROR'],
   ['500', jsonResponse(500, { error: { message: 'upstream' } }), 'MODEL_ERROR'],
 ])('maps %s to MODEL_ERROR', async (_name, response, code) => {
-  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response));
+  vi.stubGlobal(
+    'fetch',
+    vi.fn().mockImplementation(() => response.clone()),
+  );
   const model = openAICompatible({ endpoint: 'http://127.0.0.1:8787/api/assistant' });
   await expect(
     model.generate({ messages: [{ role: 'user', content: 'Hi' }], tools }),
-  ).rejects.toBeInstanceOf(AgentError);
-  await expect(
-    model.generate({ messages: [{ role: 'user', content: 'Hi' }], tools }),
-  ).rejects.toMatchObject({
-    code,
-  });
+  ).rejects.toMatchObject({ code });
 });
 
 it('replays a removed tool under the alias the provider first saw', async () => {
@@ -284,4 +282,31 @@ it('keeps reverse lookup scoped to each generate call', async () => {
   await expect(
     adapter.generate({ messages: [{ role: 'user', content: 'Go' }], tools: [tools[0]!] }),
   ).rejects.toBeInstanceOf(AgentError);
+});
+
+it('logs response shape when debug is enabled and parsing fails', async () => {
+  const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  vi.stubGlobal(
+    'fetch',
+    vi.fn().mockResolvedValue(
+      jsonResponse(200, {
+        choices: [{ message: { content: 42, tool_calls: 'not-an-array' } }],
+      }),
+    ),
+  );
+  const model = openAICompatible({
+    endpoint: '/api/assistant',
+    debug: true,
+  });
+  await expect(
+    model.generate({ messages: [{ role: 'user', content: 'Hi' }], tools }),
+  ).rejects.toMatchObject({ code: 'MODEL_ERROR' });
+  expect(warn).toHaveBeenCalledWith(
+    '[action-wire:model]',
+    'parse',
+    expect.objectContaining({
+      shape: expect.objectContaining({ messageKeys: expect.any(Array) }),
+      payload: expect.anything(),
+    }),
+  );
 });
