@@ -1,6 +1,6 @@
 <p align="center">
   <img
-    src="assets/logo.png"
+    src="brand/mark.png"
     alt="Action Wire"
     width="160"
   />
