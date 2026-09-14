@@ -2,13 +2,16 @@ import { createContextController, snapshotItems } from '~/agent/context';
 import { SAFETY_INSTRUCTIONS } from '~/agent/instructions';
 import {
   activityStatusFromResult,
+  capturedContextStillValid,
   failCall,
   freezeCall,
   freezeProposal,
   initialProposal,
   invalidateDependents,
   prepareProposal,
+  publishPreparedProposal,
   requiresReview,
+  targetsMatch,
   toolResultForProposal,
   validateModelCall,
 } from '~/agent/proposals';
@@ -319,13 +322,16 @@ export function createAgentBridge(options: BridgeOptions): Assistant {
         turn: epoch,
       });
       if (!activeTurn(epoch)) return true;
-      proposals = proposals.map((entry, at) => (at === index ? prepared : entry));
+      const current = session.getState().proposals.find((entry) => entry.id === proposal.id);
+      const published = publishPreparedProposal(current, prepared);
+      if (published === undefined) continue;
+      proposals = proposals.map((entry, at) => (at === index ? published : entry));
       session.update((state) => ({
         ...state,
         proposals,
         activities: state.activities.map((activity) =>
-          activity.call.id === prepared.call.id
-            ? { ...activity, status: prepared.status }
+          activity.call.id === published.call.id
+            ? { ...activity, status: published.status }
             : activity,
         ),
       }));
@@ -356,29 +362,89 @@ export function createAgentBridge(options: BridgeOptions): Assistant {
         continue;
       }
       if (proposal.status !== 'approved') continue;
+      const liveProposal = session.getState().proposals.find((entry) => entry.id === proposal.id);
+      if (
+        liveProposal === undefined ||
+        liveProposal.version !== proposal.version ||
+        liveProposal.status !== 'approved'
+      ) {
+        continue;
+      }
+      if (!capturedContextStillValid(liveProposal.context, context.live())) {
+        await finishCall(
+          liveProposal.call,
+          failCall(liveProposal.call.id, 'INVALIDATED', 'Attached context changed.'),
+          batch[index]?.tool,
+          false,
+          epoch,
+        );
+        return true;
+      }
       const tool = batch[index]?.tool;
       const latest = await discoverForTurn(turnSignal, epoch);
-      if (proposal.toolRevision !== latest.revision) {
+      if (liveProposal.toolRevision !== latest.revision) {
         await finishCall(
-          proposal.call,
-          failCall(proposal.call.id, 'STALE_TOOLS', 'The tool list changed. Discover tools again.'),
+          liveProposal.call,
+          failCall(
+            liveProposal.call.id,
+            'STALE_TOOLS',
+            'The tool list changed. Discover tools again.',
+          ),
           tool,
           false,
           epoch,
         );
         return true;
       }
+      if (options.review?.targets !== undefined) {
+        try {
+          const targets = await runWithOperationTimeout(turnSignal, timeoutMs, (signal) =>
+            options.review!.targets!(liveProposal.call, signal),
+          );
+          if (!targetsMatch(liveProposal.targets, targets)) {
+            await finishCall(
+              liveProposal.call,
+              failCall(
+                liveProposal.call.id,
+                'INVALIDATED',
+                'The action target changed before execution.',
+              ),
+              tool,
+              false,
+              epoch,
+            );
+            return true;
+          }
+        } catch (error) {
+          const message =
+            error instanceof AgentError
+              ? error.message
+              : 'Target resolution failed before execution.';
+          await finishCall(
+            liveProposal.call,
+            failCall(liveProposal.call.id, 'INVALIDATED', message),
+            tool,
+            false,
+            epoch,
+          );
+          return true;
+        }
+      }
       const dispatched = true;
       session.update((state) =>
-        patchActivity(patchProposal(state, proposal.id, { status: 'running' }), proposal.call.id, {
-          status: 'running',
-          dispatched: true,
-        }),
+        patchActivity(
+          patchProposal(state, liveProposal.id, { status: 'running' }),
+          liveProposal.call.id,
+          {
+            status: 'running',
+            dispatched: true,
+          },
+        ),
       );
       const result = await runWithOperationTimeout(turnSignal, timeoutMs, (op) =>
-        options.source.execute(proposal.call, latest.revision, op),
+        options.source.execute(liveProposal.call, latest.revision, op),
       );
-      await finishCall(proposal.call, result, tool, dispatched, epoch);
+      await finishCall(liveProposal.call, result, tool, dispatched, epoch);
       if (!result.ok) {
         if (!independent) {
           const invalidated = invalidateDependents(finalProposals, index, 'A prior action failed.');
@@ -534,9 +600,12 @@ export function createAgentBridge(options: BridgeOptions): Assistant {
       turn: epoch,
     });
     if (!activeTurn(epoch)) return;
+    const current = session.getState().proposals.find((entry) => entry.id === id);
+    const published = publishPreparedProposal(current, prepared);
+    if (published === undefined) return;
     session.update((s) => ({
       ...s,
-      proposals: s.proposals.map((entry) => (entry.id === id ? prepared : entry)),
+      proposals: s.proposals.map((entry) => (entry.id === id ? published : entry)),
     }));
     wakeGate();
   }
