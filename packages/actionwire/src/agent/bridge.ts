@@ -1,6 +1,7 @@
 import { buildConfirmation, needsConfirmation } from '~/agent/confirmation';
 import { SAFETY_INSTRUCTIONS } from '~/agent/instructions';
 import { createSessionStore } from '~/agent/session';
+import { abortFromSignal, assertPositiveMs, operationSignal, runWithOperationTimeout } from '~/agent/timeout';
 import { AgentError } from '~/core';
 import type {
   Activity,
@@ -22,7 +23,9 @@ const DEFAULT_TIMEOUT_MS = 30_000;
 export function createAgentBridge(options: BridgeOptions): Assistant {
   const session = createSessionStore();
   const maxRounds = options.maxRounds ?? DEFAULT_ROUNDS;
-  const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+  const timeoutMs = assertPositiveMs(options.timeoutMs ?? DEFAULT_TIMEOUT_MS, 'timeoutMs')!;
+  const reviewTimeoutMs = assertPositiveMs(options.reviewTimeoutMs, 'reviewTimeoutMs');
+  let turnEpoch = 0;
   let turn: AbortController | undefined;
   let toolsDirty = false;
   let pending:
@@ -37,10 +40,15 @@ export function createAgentBridge(options: BridgeOptions): Assistant {
     toolsDirty = true;
   });
 
+  function activeTurn(epoch: number): boolean {
+    return epoch === turnEpoch && turn !== undefined;
+  }
+
   async function send(text: string): Promise<void> {
     if (session.getState().busy) {
       throw new AgentError('BUSY', 'The assistant is busy.');
     }
+    const epoch = ++turnEpoch;
     const currentTurn = new AbortController();
     turn = currentTurn;
     session.update((state) => ({
@@ -48,38 +56,45 @@ export function createAgentBridge(options: BridgeOptions): Assistant {
       busy: true,
     }));
     try {
-      await runTurn(boundSignal(currentTurn));
+      await runTurn(currentTurn.signal, epoch);
     } catch (error) {
-      if (turn !== currentTurn) return;
+      if (!activeTurn(epoch)) return;
       session.update((state) => ({
         ...state,
         busy: false,
-        error: toStateError(error),
+        error:
+          error instanceof AgentError
+            ? { code: error.code, message: error.message }
+            : currentTurn.signal.aborted
+              ? { code: 'ABORTED', message: 'The assistant was cancelled.' }
+              : toStateError(error),
       }));
     } finally {
-      if (turn === currentTurn) {
+      if (activeTurn(epoch)) {
         turn = undefined;
         session.update((state) => ({ ...state, busy: false }));
       }
     }
   }
 
-  async function runTurn(signal: AbortSignal): Promise<void> {
-    let snapshot = await options.source.discover(signal);
+  async function runTurn(turnSignal: AbortSignal, epoch: number): Promise<void> {
+    let snapshot = await discoverForTurn(turnSignal, epoch);
     for (let round = 0; round < maxRounds; round += 1) {
-      if (signal.aborted) throw abortError(signal);
-      // A tool call can register or remove tools. Look again before the next model round.
+      if (!activeTurn(epoch) || turnSignal.aborted) throw abortFromSignal(turnSignal);
       if (round > 0) {
         toolsDirty = false;
-        snapshot = await options.source.discover(signal);
-        if (signal.aborted) throw abortError(signal);
+        snapshot = await discoverForTurn(turnSignal, epoch);
+        if (!activeTurn(epoch) || turnSignal.aborted) throw abortFromSignal(turnSignal);
       }
-      const result = await options.model.generate({
-        messages: withInstructions(session.getState().messages),
-        tools: snapshot.tools,
-        signal,
-      });
-      if (signal.aborted) throw abortError(signal);
+      const result = await runWithOperationTimeout(turnSignal, timeoutMs, (op) =>
+        options.model.generate({
+          messages: withInstructions(session.getState().messages),
+          tools: snapshot.tools,
+          signal: op,
+        }),
+      );
+      if (!activeTurn(epoch)) return;
+      if (turnSignal.aborted) throw abortFromSignal(turnSignal);
       if (result.toolCalls.length === 0) {
         session.update((state) =>
           appendVisible(state, { role: 'assistant', content: result.text }),
@@ -93,24 +108,37 @@ export function createAgentBridge(options: BridgeOptions): Assistant {
           toolCalls: result.toolCalls,
         }),
       );
-      snapshot = await runCalls(result.toolCalls, snapshot, signal);
+      snapshot = await runCalls(result.toolCalls, snapshot, turnSignal, epoch);
     }
     throw new AgentError('TURN_LIMIT', 'The assistant reached the turn limit.');
+  }
+
+  async function discoverForTurn(
+    turnSignal: AbortSignal,
+    epoch: number,
+  ): Promise<ToolSnapshot> {
+    const snapshot = await runWithOperationTimeout(turnSignal, timeoutMs, (op) =>
+      options.source.discover(op),
+    );
+    if (!activeTurn(epoch)) return snapshot;
+    if (turnSignal.aborted) throw abortFromSignal(turnSignal);
+    return snapshot;
   }
 
   async function runCalls(
     calls: readonly ToolCall[],
     snapshot: ToolSnapshot,
-    signal: AbortSignal,
+    turnSignal: AbortSignal,
+    epoch: number,
   ): Promise<ToolSnapshot> {
     let current = snapshot;
     for (const call of calls) {
-      if (signal.aborted) throw abortError(signal);
+      if (!activeTurn(epoch) || turnSignal.aborted) throw abortFromSignal(turnSignal);
       if (toolsDirty) {
         toolsDirty = false;
-        current = await options.source.discover(signal);
+        current = await discoverForTurn(turnSignal, epoch);
       }
-      if (signal.aborted) throw abortError(signal);
+      if (!activeTurn(epoch) || turnSignal.aborted) throw abortFromSignal(turnSignal);
       session.update((state) => appendActivity(state, { call, status: 'queued' }));
       const tool = current.tools.find((entry) => entry.id === call.toolId);
       let result: ToolResult;
@@ -128,14 +156,16 @@ export function createAgentBridge(options: BridgeOptions): Assistant {
             { status: 'awaiting-confirmation' },
           ),
         );
-        const approved = await waitForApproval(stored, revisionAtPrompt, signal);
-        if (signal.aborted) throw abortError(signal);
+        const approved = await waitForApproval(stored, revisionAtPrompt, turnSignal);
+        if (!activeTurn(epoch)) return current;
+        if (turnSignal.aborted) throw abortFromSignal(turnSignal);
         session.update((state) => withoutConfirmation(state));
         if (!approved) {
           result = fail(stored.id, 'CONFIRMATION_DENIED', 'The user denied this action.');
         } else {
-          const latest = await options.source.discover(signal);
-          if (signal.aborted) throw abortError(signal);
+          const latest = await discoverForTurn(turnSignal, epoch);
+          if (!activeTurn(epoch)) return current;
+          if (turnSignal.aborted) throw abortFromSignal(turnSignal);
           current = latest;
           toolsDirty = false;
           if (latest.revision !== revisionAtPrompt) {
@@ -143,13 +173,14 @@ export function createAgentBridge(options: BridgeOptions): Assistant {
           } else if (latest.tools.every((entry) => entry.id !== stored.toolId)) {
             result = fail(stored.id, 'TOOL_UNAVAILABLE', 'This tool is not available.');
           } else {
-            result = await executeCall(stored, latest.revision, signal);
+            result = await executeCall(stored, latest.revision, turnSignal, epoch);
           }
         }
       } else {
-        result = await executeCall(call, current.revision, signal);
+        result = await executeCall(call, current.revision, turnSignal, epoch);
       }
-      if (signal.aborted) throw abortError(signal);
+      if (!activeTurn(epoch)) return current;
+      if (turnSignal.aborted) throw abortFromSignal(turnSignal);
       session.update((state) =>
         appendProtocol(patchActivity(state, call.id, activityFrom(result)), {
           role: 'tool',
@@ -164,14 +195,26 @@ export function createAgentBridge(options: BridgeOptions): Assistant {
   async function executeCall(
     call: ToolCall,
     revision: number,
-    signal: AbortSignal,
+    turnSignal: AbortSignal,
+    epoch: number,
   ): Promise<ToolResult> {
     session.update((state) => patchActivity(state, call.id, { status: 'running' }));
+    const op = runWithOperationTimeout(turnSignal, timeoutMs, (signal) =>
+      options.source.execute(call, revision, signal),
+    );
     try {
-      if (signal.aborted) throw abortError(signal);
-      return await options.source.execute(call, revision, signal);
+      if (turnSignal.aborted) throw abortFromSignal(turnSignal);
+      const result = await op;
+      if (!activeTurn(epoch)) return result;
+      return result;
     } catch (error) {
-      if (signal.aborted) throw abortError(signal);
+      if (!activeTurn(epoch)) {
+        return fail(call.id, 'ABORTED', 'The tool call was aborted.');
+      }
+      if (error instanceof AgentError && (error.code === 'TIMEOUT' || error.code === 'ABORTED')) {
+        throw error;
+      }
+      if (turnSignal.aborted) throw abortFromSignal(turnSignal);
       return fail(
         call.id,
         error instanceof AgentError ? error.code : 'EXECUTION_FAILED',
@@ -183,40 +226,50 @@ export function createAgentBridge(options: BridgeOptions): Assistant {
   function waitForApproval(
     call: ToolCall,
     revision: number,
-    signal: AbortSignal,
+    turnSignal: AbortSignal,
   ): Promise<boolean> {
     return new Promise((resolve, reject) => {
-      const onAbort = () => {
+      let reviewTimer: ReturnType<typeof setTimeout> | undefined;
+      const finish = (approved: boolean) => {
+        turnSignal.removeEventListener('abort', onTurnAbort);
+        if (reviewTimer !== undefined) clearTimeout(reviewTimer);
         pending = undefined;
-        reject(abortError(signal));
+        resolve(approved);
       };
-      if (signal.aborted) {
-        onAbort();
+      const onTurnAbort = () => {
+        turnSignal.removeEventListener('abort', onTurnAbort);
+        if (reviewTimer !== undefined) clearTimeout(reviewTimer);
+        pending = undefined;
+        reject(abortFromSignal(turnSignal));
+      };
+      if (turnSignal.aborted) {
+        onTurnAbort();
         return;
       }
-      signal.addEventListener('abort', onAbort, { once: true });
+      turnSignal.addEventListener('abort', onTurnAbort, { once: true });
+      if (reviewTimeoutMs !== undefined) {
+        reviewTimer = setTimeout(() => {
+          turnSignal.removeEventListener('abort', onTurnAbort);
+          pending = undefined;
+          reject(new AgentError('TIMEOUT', 'The review timed out.'));
+        }, reviewTimeoutMs);
+      }
       pending = {
         id: call.id,
         call,
         revision,
-        finish(approved) {
-          signal.removeEventListener('abort', onAbort);
-          pending = undefined;
-          resolve(approved);
-        },
+        finish,
       };
     });
-  }
-
-  function boundSignal(controller: AbortController): AbortSignal {
-    const timeout = AbortSignal.timeout(timeoutMs);
-    return AbortSignal.any([controller.signal, timeout]);
   }
 
   return {
     send,
     async refreshTools(): Promise<ToolSnapshot> {
-      const snapshot = await options.source.discover(turn?.signal);
+      const turnSignal = turn?.signal;
+      const op =
+        turnSignal === undefined ? undefined : operationSignal(turnSignal, timeoutMs);
+      const snapshot = await options.source.discover(op);
       toolsDirty = false;
       return snapshot;
     },
@@ -232,6 +285,7 @@ export function createAgentBridge(options: BridgeOptions): Assistant {
       turn?.abort();
     },
     clear() {
+      turnEpoch += 1;
       const previous = turn;
       turn = undefined;
       pending?.finish(false);
@@ -241,6 +295,7 @@ export function createAgentBridge(options: BridgeOptions): Assistant {
     getState: () => session.getState(),
     subscribe: (listener) => session.subscribe(listener),
     dispose() {
+      turnEpoch += 1;
       const previous = turn;
       turn = undefined;
       pending?.finish(false);
@@ -324,23 +379,8 @@ function fail(callId: string, code: ErrorCode, text: string): ToolResult {
   return { callId, ok: false, text, code };
 }
 
-function abortError(signal: AbortSignal): AgentError {
-  const reason = signal.reason;
-  if (isTimeout(reason) || isTimeout(signal)) {
-    return new AgentError('TIMEOUT', 'The assistant timed out.');
-  }
-  return new AgentError('ABORTED', 'The assistant was cancelled.');
-}
-
-function isTimeout(value: unknown): boolean {
-  return (
-    typeof value === 'object' && value !== null && Reflect.get(value, 'name') === 'TimeoutError'
-  );
-}
-
 function toStateError(error: unknown): { code: ErrorCode; message: string } {
   if (error instanceof AgentError) return { code: error.code, message: error.message };
-  if (isTimeout(error)) return { code: 'TIMEOUT', message: 'The assistant timed out.' };
   if (isAbortError(error)) return { code: 'ABORTED', message: 'The assistant was cancelled.' };
   return { code: 'MODEL_ERROR', message: 'The assistant turn failed.' };
 }

@@ -82,6 +82,7 @@ export type BridgeOptions = {
   requiresConfirmation?: ConfirmationPolicy;
   maxRounds?: number;
   timeoutMs?: number;
+  reviewTimeoutMs?: number;
 };
 export type AssistantOptions = {
   model: AgentAdapter;
@@ -91,6 +92,7 @@ export type AssistantOptions = {
   theme?: Theme;
   maxRounds?: number;
   timeoutMs?: number;
+  reviewTimeoutMs?: number;
 };
 export interface MountedAssistant extends Assistant {
   mount(target?: HTMLElement): void;

@@ -100,3 +100,28 @@ it('uses the tool title and Confirm label for consequential tools', async () => 
   await sending;
   assistant.dispose();
 });
+
+it('does not consume the operation timeout while the user reviews', async () => {
+  vi.useFakeTimers();
+  try {
+    const execute = vi.fn().mockResolvedValue({ callId: 'c1', ok: true, text: 'Deleted' });
+    const generate = vi.fn().mockResolvedValueOnce({
+      text: '',
+      toolCalls: [{ id: 'c1', toolId: 'delete', arguments: { name: 'Phoenix' } }],
+    });
+    const assistant = createAgentBridge({
+      source: source(execute, async () => ({ revision: 1, tools: [remove] })),
+      model: { generate },
+      timeoutMs: 50,
+    });
+    const sending = assistant.send('Delete Phoenix.');
+    await vi.waitFor(() => expect(assistant.getState().confirmation?.id).toBe('c1'));
+    await vi.advanceTimersByTimeAsync(200);
+    assistant.confirm('c1', true);
+    await sending;
+    expect(execute).toHaveBeenCalledTimes(1);
+    assistant.dispose();
+  } finally {
+    vi.useRealTimers();
+  }
+});

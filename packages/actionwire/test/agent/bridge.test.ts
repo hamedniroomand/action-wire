@@ -213,6 +213,58 @@ it('records TIMEOUT when the model hang exceeds timeoutMs', async () => {
   assistant.dispose();
 });
 
+it('times out slow discovery even when the source ignores abort', async () => {
+  const assistant = createAgentBridge({
+    source: {
+      discover: () => new Promise(() => {}),
+      execute: async (call) => ({ callId: call.id, ok: true, text: '' }),
+      subscribe: () => () => {},
+      dispose: () => {},
+    },
+    model: { generate: async () => ({ text: 'Hi', toolCalls: [] }) },
+    timeoutMs: 20,
+  });
+  await assistant.send('Hello');
+  expect(assistant.getState().error?.code).toBe('TIMEOUT');
+  expect(assistant.getState().busy).toBe(false);
+  assistant.dispose();
+});
+
+it('times out slow execution even when the source ignores abort', async () => {
+  const assistant = createAgentBridge({
+    source: {
+      discover: async () => ({
+        revision: 1,
+        tools: [{ ...list, readOnly: true }],
+      }),
+      execute: () => new Promise(() => {}),
+      subscribe: () => () => {},
+      dispose: () => {},
+    },
+    model: {
+      generate: async () => ({
+        text: '',
+        toolCalls: [{ id: 'c1', toolId: 'list', arguments: {} }],
+      }),
+    },
+    timeoutMs: 20,
+  });
+  await assistant.send('List');
+  expect(assistant.getState().error?.code).toBe('TIMEOUT');
+  expect(assistant.getState().busy).toBe(false);
+  assistant.dispose();
+});
+
+it('rejects invalid reviewTimeoutMs before work starts', () => {
+  expect(() =>
+    createAgentBridge({
+      source: source(async (call) => ({ callId: call.id, ok: true, text: '' })),
+      model: { generate: async () => ({ text: '', toolCalls: [] }) },
+      reviewTimeoutMs: 0,
+    }),
+  ).toThrow(AgentError);
+});
+
 it('records ABORTED when cancel stops the model', async () => {
   const generate = vi.fn(
     ({ signal }: { signal?: AbortSignal }) =>

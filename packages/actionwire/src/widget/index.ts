@@ -20,6 +20,9 @@ export function createAssistant(options: AssistantOptions): MountedAssistant {
         : { requiresConfirmation: options.requiresConfirmation }),
       ...(options.maxRounds === undefined ? {} : { maxRounds: options.maxRounds }),
       ...(options.timeoutMs === undefined ? {} : { timeoutMs: options.timeoutMs }),
+      ...(options.reviewTimeoutMs === undefined
+        ? {}
+        : { reviewTimeoutMs: options.reviewTimeoutMs }),
     });
     bridge = next;
     return next;
