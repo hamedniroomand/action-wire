@@ -291,7 +291,14 @@ button {
   text-overflow: ellipsis;
 }
 
+/* Only the long text shrinks. Counts, codes, and the caret keep their size. */
 .line > span {
+  flex: none;
+}
+
+.line > .shrink {
+  flex: 0 1 auto;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -301,7 +308,19 @@ button {
 }
 
 /* One line of Markdown: blocks become inline, type inherits, lists lose bullets. */
-.receipt-text > * {
+.receipt-text {
+  display: flex;
+  align-items: center;
+}
+
+.receipt-body {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.receipt-body > * {
   display: inline;
   margin: 0;
   padding: 0;
@@ -312,14 +331,13 @@ button {
   list-style: none;
 }
 
-/* The reply is where typing continues. Show a caret there while the bar has focus. */
+/* The reply is where typing continues. The caret follows the ellipsis, outside the clipped body. */
 .bar[data-mode='receipt']:focus-within .receipt-text::after {
   content: '';
-  display: inline-block;
+  flex: none;
   width: 1.5px;
   height: 1em;
-  margin-left: 2px;
-  vertical-align: -0.15em;
+  margin-left: 3px;
   background: var(--aw-color-accent);
   animation: aw-blink 1s steps(1) infinite;
 }
@@ -445,6 +463,15 @@ button {
   border-color: transparent;
   background: transparent;
   color: var(--aw-color-muted);
+}
+
+/* The chevron points at where the transcript will go. */
+.transcript-toggle svg {
+  transition: transform 160ms ease-out;
+}
+
+.transcript-toggle[aria-expanded='true'] svg {
+  transform: rotate(180deg);
 }
 
 .tbtn.danger {
@@ -609,7 +636,8 @@ button {
   .progress::before,
   .spin,
   .wire-tab,
-  .receipt-text::after {
+  .receipt-text::after,
+  .transcript-toggle svg {
     animation: none;
     transition: none;
   }

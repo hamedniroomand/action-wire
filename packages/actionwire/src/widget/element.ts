@@ -53,7 +53,7 @@ function attach(shadow: ShadowRoot, assistant: Assistant, developerMode: boolean
   function render(state: AssistantState = assistant.getState()): void {
     const mode = toBarMode(state, { open: ui.open, draft: bar.getDraft() });
     transcript.sync(state, ui.open && ui.transcriptOpen);
-    bar.sync(mode, ui.tools);
+    bar.sync(mode, ui.tools, ui.transcriptOpen);
   }
 
   function setOpen(open: boolean): void {

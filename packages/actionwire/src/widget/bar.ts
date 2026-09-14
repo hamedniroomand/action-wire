@@ -25,7 +25,7 @@ export type BarHandlers = {
 };
 
 export type Bar = {
-  sync(mode: BarMode, tools: number | undefined): void;
+  sync(mode: BarMode, tools: number | undefined, transcriptOpen: boolean): void;
   getDraft(): string;
   focus(): void;
 };
@@ -77,7 +77,8 @@ export function createBar(
   const right = el('div', 'right');
   const pill = text('span', 'pill', '');
   const meta = text('span', 'muted', '');
-  const transcript = button('tbtn ghost', undefined);
+  const transcript = button('tbtn ghost transcript-toggle', undefined);
+  transcript.setAttribute('aria-expanded', 'false');
   transcript.append(text('span', '', 'Transcript'), upIcon());
   const retry = text('button', 'tbtn', 'Retry');
   retry.type = 'button';
@@ -158,8 +159,9 @@ export function createBar(
       else if (current.kind === 'confirm') cancel.focus();
       else input.focus();
     },
-    sync(mode, tools) {
+    sync(mode, tools, transcriptOpen) {
       const previous = current;
+      transcript.setAttribute('aria-expanded', transcriptOpen ? 'true' : 'false');
       current = mode;
       wire.hidden = mode.kind !== 'collapsed';
       bar.hidden = mode.kind === 'collapsed';
@@ -193,7 +195,7 @@ export function createBar(
           break;
         case 'busy':
           showGlyph('wire');
-          setLine(text('span', 'muted', busyCopy()));
+          setLine(text('span', 'muted shrink', busyCopy()));
           break;
         case 'tool':
           showGlyph('spinner');
@@ -206,13 +208,15 @@ export function createBar(
           send.classList.remove('primary');
           setLine(
             receipt(mode.text),
-            text('span', 'muted', `· ${mode.tools} ${mode.tools === 1 ? 'tool' : 'tools'}`),
+            ...(mode.tools === 0
+              ? []
+              : [text('span', 'muted', `· ${mode.tools} ${mode.tools === 1 ? 'tool' : 'tools'}`)]),
           );
           break;
         case 'error':
           showGlyph('error', 'danger');
           setLine(
-            text('span', '', friendlyError(mode.code)),
+            text('span', 'shrink', friendlyError(mode.code)),
             text('span', 'mono muted', mode.code),
           );
           break;
@@ -232,8 +236,10 @@ export function createBar(
 
 // The receipt is one line of model output. Markdown renders; CSS flattens blocks to inline.
 function receipt(source: string): HTMLElement {
-  const node = el('span', 'receipt-text');
-  node.append(renderMarkdown(source));
+  const node = el('span', 'receipt-text shrink');
+  const body = el('span', 'receipt-body');
+  body.append(renderMarkdown(source));
+  node.append(body);
   return node;
 }
 
