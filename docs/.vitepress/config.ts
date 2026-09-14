@@ -32,7 +32,10 @@ export default defineConfig({
     ['meta', { property: 'og:description', content: DESCRIPTION }],
     [
       'meta',
-      { property: 'og:image', content: 'https://hamedniroomand.github.io/action-wire/logo.png' },
+      {
+        property: 'og:image',
+        content: 'https://hamedniroomand.github.io/action-wire/social-card.png',
+      },
     ],
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
   ],
