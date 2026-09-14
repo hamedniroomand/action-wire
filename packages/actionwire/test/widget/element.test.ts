@@ -122,8 +122,7 @@ it('runs a consequential tool only after the confirm click', async () => {
   input().value = 'delete it';
   enter(input());
   await flush();
-  await flush();
-  expect(bar().dataset['mode']).toBe('confirm');
+  await vi.waitFor(() => expect(bar().dataset['mode']).toBe('review'));
   expect(execute).not.toHaveBeenCalled();
   const approve = [...shadow().querySelectorAll('button')].find((b) => b.textContent === 'Confirm');
   if (approve === undefined) throw new Error('missing confirm button');

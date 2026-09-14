@@ -1,41 +1,90 @@
-import { buildConfirmation, needsConfirmation } from '~/agent/confirmation';
+import { createContextController, snapshotItems } from '~/agent/context';
 import { SAFETY_INSTRUCTIONS } from '~/agent/instructions';
+import {
+  activityStatusFromResult,
+  failCall,
+  freezeCall,
+  freezeProposal,
+  initialProposal,
+  invalidateDependents,
+  prepareProposal,
+  requiresReview,
+  toolResultForProposal,
+  validateModelCall,
+} from '~/agent/proposals';
 import { createSessionStore } from '~/agent/session';
-import { abortFromSignal, assertPositiveMs, operationSignal, runWithOperationTimeout } from '~/agent/timeout';
+import { abortFromSignal, assertPositiveMs, runWithOperationTimeout } from '~/agent/timeout';
 import { AgentError } from '~/core';
 import type {
   Activity,
   Assistant,
   AssistantState,
   BridgeOptions,
-  ErrorCode,
+  Json,
   Message,
+  Proposal,
   ToolCall,
+  ToolDefinition,
   ToolResult,
   ToolSnapshot,
 } from '~/core';
+import { copyToolArguments, validateToolArguments } from '~/core/arguments';
+import type { ContextItem } from '~/core/types';
 
 /* oxlint-disable eslint/no-await-in-loop -- Model rounds and tool calls must run in order. */
 
 const DEFAULT_ROUNDS = 8;
 const DEFAULT_TIMEOUT_MS = 30_000;
 
+function needsGate(proposals: readonly Proposal[]): boolean {
+  return proposals.some(
+    (proposal) =>
+      proposal.status === 'preparing' ||
+      proposal.status === 'needs-input' ||
+      proposal.status === 'ready-for-review',
+  );
+}
+
+function needsReviewCancel(proposals: readonly Proposal[]): boolean {
+  return proposals.some(
+    (proposal) =>
+      proposal.status === 'preparing' ||
+      proposal.status === 'needs-input' ||
+      proposal.status === 'ready-for-review' ||
+      proposal.status === 'approved',
+  );
+}
+
+function isMutatingFailure(result: ToolResult, tool: ToolDefinition | undefined): boolean {
+  if (result.ok) return false;
+  if (result.code === 'OUTCOME_UNKNOWN') return true;
+  return tool !== undefined && tool.readOnly !== true;
+}
+
+function patchProposal(
+  state: AssistantState,
+  id: string,
+  patch: Partial<Proposal>,
+): AssistantState {
+  return {
+    ...state,
+    proposals: state.proposals.map((proposal) =>
+      proposal.id === id ? freezeProposal({ ...proposal, ...patch }) : proposal,
+    ),
+  };
+}
+
 export function createAgentBridge(options: BridgeOptions): Assistant {
   const session = createSessionStore();
+  const context = createContextController(options.context);
   const maxRounds = options.maxRounds ?? DEFAULT_ROUNDS;
   const timeoutMs = assertPositiveMs(options.timeoutMs ?? DEFAULT_TIMEOUT_MS, 'timeoutMs')!;
   const reviewTimeoutMs = assertPositiveMs(options.reviewTimeoutMs, 'reviewTimeoutMs');
   let turnEpoch = 0;
   let turn: AbortController | undefined;
   let toolsDirty = false;
-  let pending:
-    | {
-        id: string;
-        call: ToolCall;
-        revision: number;
-        finish: (approved: boolean) => void;
-      }
-    | undefined;
+  let gateWaiters: Array<() => void> = [];
+  let previewToken = { turn: 0, version: 0 };
   const stopSource = options.source.subscribe(() => {
     toolsDirty = true;
   });
@@ -44,15 +93,56 @@ export function createAgentBridge(options: BridgeOptions): Assistant {
     return epoch === turnEpoch && turn !== undefined;
   }
 
+  function wakeGate(): void {
+    for (const wake of gateWaiters) wake();
+    gateWaiters = [];
+  }
+
+  function waitForGate(turnSignal: AbortSignal): Promise<void> {
+    return new Promise((resolve, reject) => {
+      let reviewTimer: ReturnType<typeof setTimeout> | undefined;
+      const finish = () => {
+        turnSignal.removeEventListener('abort', onAbort);
+        if (reviewTimer !== undefined) clearTimeout(reviewTimer);
+        gateWaiters = gateWaiters.filter((entry) => entry !== finish);
+        resolve();
+      };
+      const onAbort = () => {
+        turnSignal.removeEventListener('abort', onAbort);
+        if (reviewTimer !== undefined) clearTimeout(reviewTimer);
+        gateWaiters = gateWaiters.filter((entry) => entry !== finish);
+        reject(abortFromSignal(turnSignal));
+      };
+      if (turnSignal.aborted) {
+        onAbort();
+        return;
+      }
+      turnSignal.addEventListener('abort', onAbort, { once: true });
+      if (reviewTimeoutMs !== undefined) {
+        reviewTimer = setTimeout(() => {
+          onAbort();
+          reject(new AgentError('TIMEOUT', 'The review timed out.'));
+        }, reviewTimeoutMs);
+      }
+      gateWaiters.push(finish);
+    });
+  }
+
   async function send(text: string): Promise<void> {
     if (session.getState().busy) {
       throw new AgentError('BUSY', 'The assistant is busy.');
     }
+    const captured = snapshotItems(context.captureForSend());
     const epoch = ++turnEpoch;
     const currentTurn = new AbortController();
     turn = currentTurn;
     session.update((state) => ({
-      ...appendVisible(stripTransient(state), { role: 'user', content: text }),
+      ...appendVisible(stripTransient(state), {
+        role: 'user',
+        content: text,
+        ...(captured.length > 0 ? { context: captured } : {}),
+      }),
+      context: captured,
       busy: true,
     }));
     try {
@@ -67,12 +157,12 @@ export function createAgentBridge(options: BridgeOptions): Assistant {
             ? { code: error.code, message: error.message }
             : currentTurn.signal.aborted
               ? { code: 'ABORTED', message: 'The assistant was cancelled.' }
-              : toStateError(error),
+              : { code: 'MODEL_ERROR', message: 'The assistant turn failed.' },
       }));
     } finally {
       if (activeTurn(epoch)) {
         turn = undefined;
-        session.update((state) => ({ ...state, busy: false }));
+        session.update((state) => ({ ...state, busy: false, proposals: [] }));
       }
     }
   }
@@ -88,7 +178,7 @@ export function createAgentBridge(options: BridgeOptions): Assistant {
       }
       const result = await runWithOperationTimeout(turnSignal, timeoutMs, (op) =>
         options.model.generate({
-          messages: withInstructions(session.getState().messages),
+          messages: withInstructions(toModelMessages(session.getState().messages)),
           tools: snapshot.tools,
           signal: op,
         }),
@@ -108,15 +198,14 @@ export function createAgentBridge(options: BridgeOptions): Assistant {
           toolCalls: result.toolCalls,
         }),
       );
-      snapshot = await runCalls(result.toolCalls, snapshot, turnSignal, epoch);
+      const stop = await runCalls(result.toolCalls, snapshot, turnSignal, epoch);
+      if (stop || !activeTurn(epoch)) return;
+      snapshot = await discoverForTurn(turnSignal, epoch);
     }
     throw new AgentError('TURN_LIMIT', 'The assistant reached the turn limit.');
   }
 
-  async function discoverForTurn(
-    turnSignal: AbortSignal,
-    epoch: number,
-  ): Promise<ToolSnapshot> {
+  async function discoverForTurn(turnSignal: AbortSignal, epoch: number): Promise<ToolSnapshot> {
     const snapshot = await runWithOperationTimeout(turnSignal, timeoutMs, (op) =>
       options.source.discover(op),
     );
@@ -130,166 +219,371 @@ export function createAgentBridge(options: BridgeOptions): Assistant {
     snapshot: ToolSnapshot,
     turnSignal: AbortSignal,
     epoch: number,
-  ): Promise<ToolSnapshot> {
-    let current = snapshot;
+  ): Promise<boolean> {
+    if (toolsDirty) {
+      const seen = new Set<string>();
+      for (const call of calls) {
+        if (!activeTurn(epoch)) return true;
+        const validated = validateModelCall(call, snapshot, seen);
+        const result =
+          'error' in validated
+            ? failCall(call.id, 'INVALID_ARGUMENTS', validated.error)
+            : failCall(call.id, 'STALE_TOOLS', 'The tool list changed. Discover tools again.');
+        await finishCall(
+          call,
+          result,
+          'error' in validated ? undefined : validated.tool,
+          false,
+          epoch,
+        );
+      }
+      return false;
+    }
+    const seen = new Set<string>();
+    const independent = options.review?.independent?.(calls) ?? false;
+    const batch: { call: ToolCall; tool: ToolDefinition }[] = [];
+    const immediate: { call: ToolCall; tool: ToolDefinition }[] = [];
+    let userContext: readonly ContextItem[] = [];
+    for (let index = session.getState().messages.length - 1; index >= 0; index -= 1) {
+      const message = session.getState().messages[index];
+      if (message?.role === 'user') {
+        userContext = message.context ?? [];
+        break;
+      }
+    }
     for (const call of calls) {
       if (!activeTurn(epoch) || turnSignal.aborted) throw abortFromSignal(turnSignal);
-      if (toolsDirty) {
-        toolsDirty = false;
-        current = await discoverForTurn(turnSignal, epoch);
-      }
-      if (!activeTurn(epoch) || turnSignal.aborted) throw abortFromSignal(turnSignal);
-      session.update((state) => appendActivity(state, { call, status: 'queued' }));
-      const tool = current.tools.find((entry) => entry.id === call.toolId);
-      let result: ToolResult;
-      if (current.revision !== snapshot.revision) {
-        result = fail(call.id, 'STALE_TOOLS', 'The tool list changed. Discover tools again.');
-      } else if (tool === undefined) {
-        result = fail(call.id, 'TOOL_UNAVAILABLE', 'This tool is not available.');
-      } else if (needsConfirmation(tool, call, options.requiresConfirmation)) {
-        const revisionAtPrompt = current.revision;
-        const stored = freezeCall(call);
-        session.update((state) =>
-          patchActivity(
-            { ...state, confirmation: buildConfirmation(tool, stored, revisionAtPrompt) },
-            stored.id,
-            { status: 'awaiting-confirmation' },
-          ),
+      const validated = validateModelCall(call, snapshot, seen);
+      if ('error' in validated) {
+        await finishCall(
+          call,
+          failCall(call.id, 'INVALID_ARGUMENTS', validated.error),
+          undefined,
+          false,
+          epoch,
         );
-        const approved = await waitForApproval(stored, revisionAtPrompt, turnSignal);
-        if (!activeTurn(epoch)) return current;
-        if (turnSignal.aborted) throw abortFromSignal(turnSignal);
-        session.update((state) => withoutConfirmation(state));
-        if (!approved) {
-          result = fail(stored.id, 'CONFIRMATION_DENIED', 'The user denied this action.');
-        } else {
-          const latest = await discoverForTurn(turnSignal, epoch);
-          if (!activeTurn(epoch)) return current;
-          if (turnSignal.aborted) throw abortFromSignal(turnSignal);
-          current = latest;
-          toolsDirty = false;
-          if (latest.revision !== revisionAtPrompt) {
-            result = fail(stored.id, 'STALE_TOOLS', 'The tool list changed. Discover tools again.');
-          } else if (latest.tools.every((entry) => entry.id !== stored.toolId)) {
-            result = fail(stored.id, 'TOOL_UNAVAILABLE', 'This tool is not available.');
-          } else {
-            result = await executeCall(stored, latest.revision, turnSignal, epoch);
-          }
-        }
-      } else {
-        result = await executeCall(call, current.revision, turnSignal, epoch);
+        return true;
       }
-      if (!activeTurn(epoch)) return current;
-      if (turnSignal.aborted) throw abortFromSignal(turnSignal);
+      if (requiresReview(validated.tool, call, options.requiresConfirmation)) {
+        batch.push({ call, tool: validated.tool });
+      } else {
+        immediate.push({ call, tool: validated.tool });
+      }
+    }
+    for (const entry of immediate) {
+      if (!activeTurn(epoch)) return true;
+      if (toolsDirty) {
+        await finishCall(
+          entry.call,
+          failCall(entry.call.id, 'STALE_TOOLS', 'The tool list changed. Discover tools again.'),
+          entry.tool,
+          false,
+          epoch,
+        );
+        continue;
+      }
+      const result = await executeDirect(
+        entry.call,
+        entry.tool,
+        snapshot.revision,
+        turnSignal,
+        epoch,
+      );
+      if (!result.ok && isMutatingFailure(result, entry.tool)) return true;
+    }
+    if (batch.length === 0) return false;
+    let proposals = batch.map(({ call, tool }) =>
+      initialProposal({ call, tool, toolRevision: snapshot.revision, context: userContext }),
+    );
+    session.update((state) => {
+      let next: AssistantState = { ...state, proposals };
+      for (const proposal of proposals) {
+        next = appendActivity(next, { call: proposal.call, status: 'preparing' });
+      }
+      return next;
+    });
+    previewToken = { turn: epoch, version: 0 };
+    for (let index = 0; index < proposals.length; index += 1) {
+      const proposal = proposals[index]!;
+      const tool = batch[index]!.tool;
+      previewToken = { turn: epoch, version: proposal.version };
+      const prepared = await prepareProposal({
+        proposal,
+        tool,
+        snapshot,
+        source: options.source,
+        ...(options.review === undefined ? {} : { review: options.review }),
+        turnSignal,
+        timeoutMs,
+        previewToken,
+        turn: epoch,
+      });
+      if (!activeTurn(epoch)) return true;
+      proposals = proposals.map((entry, at) => (at === index ? prepared : entry));
+      session.update((state) => ({
+        ...state,
+        proposals,
+        activities: state.activities.map((activity) =>
+          activity.call.id === prepared.call.id
+            ? { ...activity, status: prepared.status }
+            : activity,
+        ),
+      }));
+    }
+    while (activeTurn(epoch) && needsGate(session.getState().proposals)) {
+      await waitForGate(turnSignal);
+      if (!activeTurn(epoch)) return true;
+    }
+    const finalProposals = session.getState().proposals;
+    for (let index = 0; index < finalProposals.length; index += 1) {
+      const proposal = finalProposals[index]!;
+      if (!activeTurn(epoch)) return true;
+      if (proposal.status === 'denied' || proposal.status === 'invalidated') {
+        await finishCall(
+          proposal.call,
+          toolResultForProposal(
+            proposal,
+            failCall(
+              proposal.call.id,
+              proposal.status === 'invalidated' ? 'INVALIDATED' : 'CONFIRMATION_DENIED',
+              proposal.reason ?? 'The action was not approved.',
+            ),
+          ),
+          batch[index]?.tool,
+          false,
+          epoch,
+        );
+        continue;
+      }
+      if (proposal.status !== 'approved') continue;
+      const tool = batch[index]?.tool;
+      const latest = await discoverForTurn(turnSignal, epoch);
+      if (proposal.toolRevision !== latest.revision) {
+        await finishCall(
+          proposal.call,
+          failCall(proposal.call.id, 'STALE_TOOLS', 'The tool list changed. Discover tools again.'),
+          tool,
+          false,
+          epoch,
+        );
+        return true;
+      }
+      const dispatched = true;
       session.update((state) =>
-        appendProtocol(patchActivity(state, call.id, activityFrom(result)), {
-          role: 'tool',
-          content: result.text,
-          callId: call.id,
+        patchActivity(patchProposal(state, proposal.id, { status: 'running' }), proposal.call.id, {
+          status: 'running',
+          dispatched: true,
         }),
       );
+      const result = await runWithOperationTimeout(turnSignal, timeoutMs, (op) =>
+        options.source.execute(proposal.call, latest.revision, op),
+      );
+      await finishCall(proposal.call, result, tool, dispatched, epoch);
+      if (!result.ok) {
+        if (!independent) {
+          const invalidated = invalidateDependents(finalProposals, index, 'A prior action failed.');
+          session.update((state) => ({ ...state, proposals: invalidated }));
+        }
+        if (isMutatingFailure(result, tool)) return true;
+      }
     }
-    return current;
+    return false;
   }
 
-  async function executeCall(
+  async function executeDirect(
     call: ToolCall,
+    tool: ToolDefinition,
     revision: number,
     turnSignal: AbortSignal,
     epoch: number,
   ): Promise<ToolResult> {
-    session.update((state) => patchActivity(state, call.id, { status: 'running' }));
-    const op = runWithOperationTimeout(turnSignal, timeoutMs, (signal) =>
-      options.source.execute(call, revision, signal),
-    );
+    session.update((state) => appendActivity(state, { call, status: 'running', dispatched: true }));
     try {
-      if (turnSignal.aborted) throw abortFromSignal(turnSignal);
-      const result = await op;
-      if (!activeTurn(epoch)) return result;
+      const result = await runWithOperationTimeout(turnSignal, timeoutMs, (op) =>
+        options.source.execute(call, revision, op),
+      );
+      await finishCall(call, result, tool, true, epoch);
       return result;
     } catch (error) {
-      if (!activeTurn(epoch)) {
-        return fail(call.id, 'ABORTED', 'The tool call was aborted.');
+      if (error instanceof AgentError) {
+        if (error.code === 'TIMEOUT' || error.code === 'ABORTED') throw error;
+        await finishCall(call, failCall(call.id, error.code, error.message), tool, true, epoch);
+        return failCall(call.id, error.code, error.message);
       }
-      if (error instanceof AgentError && (error.code === 'TIMEOUT' || error.code === 'ABORTED')) {
-        throw error;
-      }
-      if (turnSignal.aborted) throw abortFromSignal(turnSignal);
-      return fail(
-        call.id,
-        error instanceof AgentError ? error.code : 'EXECUTION_FAILED',
-        error instanceof Error ? error.message : 'Tool execution failed.',
-      );
+      throw error;
     }
   }
 
-  function waitForApproval(
+  async function finishCall(
     call: ToolCall,
-    revision: number,
-    turnSignal: AbortSignal,
-  ): Promise<boolean> {
-    return new Promise((resolve, reject) => {
-      let reviewTimer: ReturnType<typeof setTimeout> | undefined;
-      const finish = (approved: boolean) => {
-        turnSignal.removeEventListener('abort', onTurnAbort);
-        if (reviewTimer !== undefined) clearTimeout(reviewTimer);
-        pending = undefined;
-        resolve(approved);
-      };
-      const onTurnAbort = () => {
-        turnSignal.removeEventListener('abort', onTurnAbort);
-        if (reviewTimer !== undefined) clearTimeout(reviewTimer);
-        pending = undefined;
-        reject(abortFromSignal(turnSignal));
-      };
-      if (turnSignal.aborted) {
-        onTurnAbort();
-        return;
-      }
-      turnSignal.addEventListener('abort', onTurnAbort, { once: true });
-      if (reviewTimeoutMs !== undefined) {
-        reviewTimer = setTimeout(() => {
-          turnSignal.removeEventListener('abort', onTurnAbort);
-          pending = undefined;
-          reject(new AgentError('TIMEOUT', 'The review timed out.'));
-        }, reviewTimeoutMs);
-      }
-      pending = {
-        id: call.id,
-        call,
-        revision,
-        finish,
-      };
+    result: ToolResult,
+    tool: ToolDefinition | undefined,
+    dispatched: boolean,
+    epoch: number,
+  ): Promise<void> {
+    if (!activeTurn(epoch)) return;
+    session.update((state) => {
+      const hasActivity = state.activities.some((activity) => activity.call.id === call.id);
+      const base = hasActivity
+        ? state
+        : appendActivity(state, { call, status: 'running', dispatched });
+      return appendProtocol(
+        patchActivity(base, call.id, {
+          status: activityStatusFromResult({ result, tool, dispatched }),
+          result,
+          dispatched,
+        }),
+        { role: 'tool', content: result.text, callId: call.id },
+      );
     });
+  }
+
+  function applyConfirm(id: string, version: number, approved: boolean): void {
+    session.update((state) => {
+      const index = state.proposals.findIndex((entry) => entry.id === id);
+      if (index < 0) return state;
+      const proposal = state.proposals[index]!;
+      if (proposal.version !== version) return state;
+      if (approved && proposal.status !== 'ready-for-review') return state;
+      if (
+        !approved &&
+        proposal.status !== 'ready-for-review' &&
+        proposal.status !== 'needs-input' &&
+        proposal.status !== 'preparing' &&
+        proposal.status !== 'approved'
+      ) {
+        return state;
+      }
+      const independent =
+        options.review?.independent?.(state.proposals.map((p) => p.call)) ?? false;
+      let proposals = state.proposals.map((entry) => {
+        if (entry.id !== id) return entry;
+        const patch: Pick<Proposal, 'status'> & Partial<Pick<Proposal, 'reason'>> = approved
+          ? { status: 'approved' }
+          : { status: 'denied', reason: 'The user excluded this action.' };
+        return freezeProposal({ ...entry, ...patch });
+      });
+      if (!approved && !independent) {
+        proposals = invalidateDependents(proposals, index, 'An earlier action changed.');
+      }
+      return { ...state, proposals };
+    });
+    wakeGate();
+  }
+
+  function applyEdit(id: string, version: number, args: Record<string, Json>): void {
+    session.update((state) => {
+      const index = state.proposals.findIndex((entry) => entry.id === id);
+      if (index < 0) return state;
+      const proposal = state.proposals[index]!;
+      if (proposal.version !== version) return state;
+      if (proposal.status === 'running' || proposal.status === 'succeeded') return state;
+      const tool = state.activities.find((a) => a.call.id === proposal.call.id);
+      void tool;
+      const nextCall = freezeCall({ ...proposal.call, arguments: copyToolArguments(args) });
+      const independent =
+        options.review?.independent?.(state.proposals.map((p) => p.call)) ?? false;
+      let proposals = state.proposals.map((entry) => {
+        if (entry.id !== id) return entry;
+        const { preview: _preview, reason: _reason, ...rest } = entry;
+        return freezeProposal({
+          ...rest,
+          call: nextCall,
+          version: entry.version + 1,
+          status: 'preparing',
+        });
+      });
+      if (!independent)
+        proposals = invalidateDependents(proposals, index, 'An earlier action changed.');
+      return { ...state, proposals };
+    });
+    wakeGate();
+    void reprepare(id);
+  }
+
+  async function reprepare(id: string): Promise<void> {
+    const epoch = turnEpoch;
+    const turnSignal = turn?.signal;
+    if (turnSignal === undefined) return;
+    const state = session.getState();
+    const index = state.proposals.findIndex((entry) => entry.id === id);
+    if (index < 0) return;
+    const proposal = state.proposals[index]!;
+    const snapshot = await discoverForTurn(turnSignal, epoch);
+    const tool = snapshot.tools.find((entry) => entry.id === proposal.call.toolId);
+    if (tool === undefined || !validateToolArguments(tool.inputSchema, proposal.call.arguments)) {
+      session.update((s) =>
+        patchProposal(s, id, {
+          status: 'needs-input',
+          reason: 'The tool arguments do not match the input schema.',
+        }),
+      );
+      wakeGate();
+      return;
+    }
+    previewToken = { turn: epoch, version: proposal.version };
+    const prepared = await prepareProposal({
+      proposal,
+      tool,
+      snapshot,
+      source: options.source,
+      ...(options.review === undefined ? {} : { review: options.review }),
+      turnSignal,
+      timeoutMs,
+      previewToken,
+      turn: epoch,
+    });
+    if (!activeTurn(epoch)) return;
+    session.update((s) => ({
+      ...s,
+      proposals: s.proposals.map((entry) => (entry.id === id ? prepared : entry)),
+    }));
+    wakeGate();
   }
 
   return {
     send,
     async refreshTools(): Promise<ToolSnapshot> {
       const turnSignal = turn?.signal;
-      const op =
-        turnSignal === undefined ? undefined : operationSignal(turnSignal, timeoutMs);
-      const snapshot = await options.source.discover(op);
-      toolsDirty = false;
-      return snapshot;
+      if (turnSignal === undefined) return options.source.discover();
+      return runWithOperationTimeout(turnSignal, timeoutMs, (op) => options.source.discover(op));
     },
-    confirm(id, approved) {
-      if (pending === undefined || pending.id !== id) return;
-      pending.finish(approved);
+    confirm(id, version, approved) {
+      applyConfirm(id, version, approved);
+    },
+    edit(id, version, args) {
+      applyEdit(id, version, args);
+    },
+    removeContext(id) {
+      context.remove(id);
+      session.update((state) => ({ ...state, context: snapshotItems(context.live()) }));
     },
     cancel() {
-      if (pending !== undefined) {
-        pending.finish(false);
+      if (needsReviewCancel(session.getState().proposals)) {
+        session.update((state) => ({
+          ...state,
+          proposals: state.proposals.map((proposal) =>
+            proposal.status === 'ready-for-review' ||
+            proposal.status === 'preparing' ||
+            proposal.status === 'needs-input' ||
+            proposal.status === 'approved'
+              ? freezeProposal({ ...proposal, status: 'denied', reason: 'The user cancelled.' })
+              : proposal,
+          ),
+        }));
+        wakeGate();
         return;
       }
       turn?.abort();
     },
     clear() {
       turnEpoch += 1;
+      previewToken = { turn: turnEpoch, version: 0 };
       const previous = turn;
       turn = undefined;
-      pending?.finish(false);
+      wakeGate();
       previous?.abort();
+      context.reset();
       session.clear();
     },
     getState: () => session.getState(),
@@ -298,29 +592,12 @@ export function createAgentBridge(options: BridgeOptions): Assistant {
       turnEpoch += 1;
       const previous = turn;
       turn = undefined;
-      pending?.finish(false);
+      wakeGate();
       previous?.abort();
       stopSource();
+      context.dispose();
       session.dispose();
     },
-  };
-}
-
-function freezeCall(call: ToolCall): ToolCall {
-  return Object.freeze({
-    id: call.id,
-    toolId: call.toolId,
-    arguments: Object.freeze({ ...call.arguments }),
-  });
-}
-
-function withoutConfirmation(state: AssistantState): AssistantState {
-  return {
-    timeline: state.timeline,
-    messages: state.messages,
-    activities: state.activities,
-    busy: state.busy,
-    ...(state.error === undefined ? {} : { error: state.error }),
   };
 }
 
@@ -329,6 +606,8 @@ function stripTransient(state: AssistantState): AssistantState {
     timeline: state.timeline,
     messages: state.messages,
     activities: state.activities,
+    context: state.context,
+    proposals: [],
     busy: state.busy,
   };
 }
@@ -367,28 +646,22 @@ function patchActivity(
   };
 }
 
-function activityFrom(result: ToolResult): Partial<Activity> {
-  if (result.ok) return { status: 'success', result };
-  if (result.code === 'ABORTED' || result.code === 'CONFIRMATION_DENIED') {
-    return { status: 'cancelled', result };
-  }
-  return { status: 'error', result };
-}
-
-function fail(callId: string, code: ErrorCode, text: string): ToolResult {
-  return { callId, ok: false, text, code };
-}
-
-function toStateError(error: unknown): { code: ErrorCode; message: string } {
-  if (error instanceof AgentError) return { code: error.code, message: error.message };
-  if (isAbortError(error)) return { code: 'ABORTED', message: 'The assistant was cancelled.' };
-  return { code: 'MODEL_ERROR', message: 'The assistant turn failed.' };
-}
-
-function isAbortError(error: unknown): boolean {
-  return typeof error === 'object' && error !== null && Reflect.get(error, 'name') === 'AbortError';
-}
-
 function withInstructions(messages: readonly Message[]): readonly Message[] {
   return [{ role: 'system', content: SAFETY_INSTRUCTIONS }, ...messages];
+}
+
+function toModelMessages(messages: readonly Message[]): readonly Message[] {
+  return messages.map((message) => {
+    if (message.role !== 'user' || message.context === undefined || message.context.length === 0) {
+      return message;
+    }
+    const contextText = message.context
+      .map((item) => `${item.label} [${item.resource} @ ${item.version}]`)
+      .join('; ');
+    return {
+      role: 'user',
+      content: `${message.content}\n\nAttached context (untrusted data): ${contextText}`,
+      context: message.context,
+    };
+  });
 }

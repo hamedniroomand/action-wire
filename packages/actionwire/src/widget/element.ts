@@ -1,5 +1,6 @@
 import type { Assistant, AssistantState } from '~/core';
 import { createBar } from '~/widget/bar';
+import { createContextRow } from '~/widget/context';
 import { hotkeyLabel, isMacPlatform, listenToggle } from '~/widget/hotkey';
 import { toBarMode } from '~/widget/modes';
 import { STYLES } from '~/widget/styles';
@@ -48,10 +49,21 @@ function attach(shadow: ShadowRoot, assistant: Assistant, developerMode: boolean
   const root = document.createElement('div');
   root.className = 'root';
   const transcriptRoot = document.createElement('div');
+  const contextRoot = document.createElement('div');
   const barRoot = document.createDocumentFragment();
+
+  const contextRow = createContextRow(contextRoot, {
+    remove: (id) => {
+      assistant.removeContext(id);
+    },
+    focusComposer: () => {
+      bar.focus();
+    },
+  });
 
   function render(state: AssistantState = assistant.getState()): void {
     const mode = toBarMode(state, { open: ui.open, draft: bar.getDraft() });
+    contextRow.sync(state.context);
     transcript.sync(state, ui.open && ui.transcriptOpen);
     bar.sync(mode, ui.tools, ui.transcriptOpen);
   }
@@ -110,8 +122,8 @@ function attach(shadow: ShadowRoot, assistant: Assistant, developerMode: boolean
       retry: (text) => {
         void assistant.send(text).catch(() => {});
       },
-      confirm: (id, approved) => {
-        assistant.confirm(id, approved);
+      confirm: (id, version, approved) => {
+        assistant.confirm(id, version, approved);
       },
       transcript: () => {
         ui.transcriptOpen = !ui.transcriptOpen;
@@ -124,15 +136,15 @@ function attach(shadow: ShadowRoot, assistant: Assistant, developerMode: boolean
     { hotkeyLabel: hotkeyLabel(mac) },
   );
 
-  root.append(transcriptRoot, barRoot);
+  root.append(transcriptRoot, contextRoot, barRoot);
   shadow.replaceChildren(style, root);
 
   function onKeydown(event: KeyboardEvent): void {
     if (event.key !== 'Escape') return;
     event.preventDefault();
-    const prompt = assistant.getState().confirmation;
-    if (prompt !== undefined) {
-      assistant.confirm(prompt.id, false);
+    const review = assistant.getState().proposals.find((p) => p.status === 'ready-for-review');
+    if (review !== undefined) {
+      assistant.confirm(review.id, review.version, false);
       return;
     }
     if (ui.transcriptOpen) {

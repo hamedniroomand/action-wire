@@ -1,8 +1,6 @@
-import { Validator } from '@cfworker/json-schema';
-
 import { AgentError } from '~/core';
 import type { ErrorCode, Json, ToolCall, ToolResult } from '~/core';
-import { DRAFT_2020, DRAFT_7 } from '~/core/meta-schemas';
+import { validateToolArguments } from '~/core/arguments';
 import { getNativeContext } from '~/webmcp/native';
 import type { NormalizedNativeTool } from '~/webmcp/normalize';
 
@@ -28,7 +26,7 @@ export async function executeNativeTool(input: {
   if (handle === undefined) {
     return fail(call.id, 'TOOL_UNAVAILABLE', 'This tool is not available.');
   }
-  if (!validArguments(handle.definition.inputSchema, call.arguments)) {
+  if (!validateToolArguments(handle.definition.inputSchema, call.arguments)) {
     return fail(call.id, 'INVALID_ARGUMENTS', 'The tool arguments do not match the input schema.');
   }
   let context;
@@ -57,13 +55,6 @@ export async function executeNativeTool(input: {
     );
   }
   return normalizeResult(call.id, raw);
-}
-
-function validArguments(schema: Record<string, Json>, data: Record<string, Json>): boolean {
-  const dialect = schema['$schema'];
-  if (dialect !== undefined && dialect !== DRAFT_7 && dialect !== DRAFT_2020) return false;
-  const validator = new Validator(schema, dialect === DRAFT_7 ? '7' : '2020-12');
-  return validator.validate(data).valid;
 }
 
 function normalizeResult(callId: string, raw: unknown): ToolResult {

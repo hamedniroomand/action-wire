@@ -19,7 +19,7 @@ export type BarHandlers = {
   send: (text: string) => void;
   stop: () => void;
   retry: (text: string) => void;
-  confirm: (id: string, approved: boolean) => void;
+  confirm: (id: string, version: number, approved: boolean) => void;
   transcript: () => void;
   draft: () => void;
 };
@@ -135,10 +135,12 @@ export function createBar(
     if (current.kind === 'error' && current.retry !== undefined) handlers.retry(current.retry);
   });
   cancel.addEventListener('click', () => {
-    if (current.kind === 'confirm') handlers.confirm(current.confirmation.id, false);
+    if (current.kind === 'review')
+      handlers.confirm(current.proposal.id, current.proposal.version, false);
   });
   approve.addEventListener('click', () => {
-    if (current.kind === 'confirm') handlers.confirm(current.confirmation.id, true);
+    if (current.kind === 'review')
+      handlers.confirm(current.proposal.id, current.proposal.version, true);
   });
 
   function showGlyph(name: keyof typeof glyphs, tone = ''): void {
@@ -156,7 +158,7 @@ export function createBar(
     getDraft: () => input.value,
     focus() {
       if (current.kind === 'collapsed') wire.focus();
-      else if (current.kind === 'confirm') cancel.focus();
+      else if (current.kind === 'review') cancel.focus();
       else input.focus();
     },
     sync(mode, tools, transcriptOpen) {
@@ -168,7 +170,7 @@ export function createBar(
       bar.dataset['mode'] = mode.kind;
       if (mode.kind === 'collapsed') return;
 
-      const isConfirm = mode.kind === 'confirm';
+      const isConfirm = mode.kind === 'review';
       confirm.hidden = !isConfirm;
       glyph.hidden = isConfirm;
       main.hidden = isConfirm;
@@ -220,15 +222,15 @@ export function createBar(
             text('span', 'mono muted', mode.code),
           );
           break;
-        case 'confirm':
-          confirmTitle.textContent = mode.confirmation.title;
-          approve.textContent = mode.confirmation.confirmLabel;
+        case 'review':
+          confirmTitle.textContent = mode.proposal.title;
+          approve.textContent = 'Confirm';
           break;
       }
 
       if (previous.kind !== mode.kind) {
-        if (mode.kind === 'confirm') cancel.focus();
-        else if (previous.kind === 'confirm' || previous.kind === 'collapsed') input.focus();
+        if (mode.kind === 'review') cancel.focus();
+        else if (previous.kind === 'review' || previous.kind === 'collapsed') input.focus();
       }
     },
   };

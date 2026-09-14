@@ -1,7 +1,7 @@
 import { expect, it, vi } from 'vitest';
 
 import { createAgentBridge } from '~/agent/bridge';
-import type { ToolDefinition, ToolSource } from '~/core';
+import type { AssistantState, ToolDefinition, ToolSource } from '~/core';
 
 const remove: ToolDefinition = {
   id: 'delete',
@@ -13,6 +13,12 @@ const remove: ToolDefinition = {
 
 function source(execute: ToolSource['execute'], discover: ToolSource['discover']): ToolSource {
   return { discover, execute, subscribe: () => () => {}, dispose: () => {} };
+}
+
+function readyForCall(state: AssistantState, callId: string) {
+  return state.proposals.find(
+    (proposal) => proposal.call.id === callId && proposal.status === 'ready-for-review',
+  );
 }
 
 it('does not run a delete handler before approval or after denial, and approval executes once', async () => {
@@ -34,17 +40,19 @@ it('does not run a delete handler before approval or after denial, and approval 
     model: { generate },
   });
   const denied = assistant.send('Delete Phoenix.');
-  await vi.waitFor(() => expect(assistant.getState().confirmation?.id).toBe('c1'));
+  await vi.waitFor(() => expect(readyForCall(assistant.getState(), 'c1')).toBeDefined());
   expect(execute).toHaveBeenCalledTimes(0);
-  assistant.confirm('wrong', true);
-  assistant.confirm('c1', false);
+  const first = readyForCall(assistant.getState(), 'c1')!;
+  assistant.confirm('wrong', 1, true);
+  assistant.confirm(first.id, first.version, false);
   await denied;
   expect(execute).toHaveBeenCalledTimes(0);
 
   const approved = assistant.send('Delete Phoenix again.');
-  await vi.waitFor(() => expect(assistant.getState().confirmation?.id).toBe('c2'));
-  assistant.confirm('c2', true);
-  assistant.confirm('c2', true);
+  await vi.waitFor(() => expect(readyForCall(assistant.getState(), 'c2')).toBeDefined());
+  const second = readyForCall(assistant.getState(), 'c2')!;
+  assistant.confirm(second.id, second.version, true);
+  assistant.confirm(second.id, second.version, true);
   await approved;
   expect(execute).toHaveBeenCalledTimes(1);
   expect(execute.mock.calls[0]?.[0]).toEqual({
@@ -70,9 +78,10 @@ it('requires a fresh request when the tool revision changes', async () => {
     model: { generate },
   });
   const sending = assistant.send('Delete Phoenix.');
-  await vi.waitFor(() => expect(assistant.getState().confirmation?.id).toBe('c1'));
+  await vi.waitFor(() => expect(readyForCall(assistant.getState(), 'c1')).toBeDefined());
   revision = 2;
-  assistant.confirm('c1', true);
+  const proposal = readyForCall(assistant.getState(), 'c1')!;
+  assistant.confirm(proposal.id, proposal.version, true);
   await sending;
   expect(execute).toHaveBeenCalledTimes(0);
   assistant.dispose();
@@ -93,35 +102,31 @@ it('uses the tool title and Confirm label for consequential tools', async () => 
     model: { generate },
   });
   const sending = assistant.send('Remove Phoenix.');
-  await vi.waitFor(() => expect(assistant.getState().confirmation?.id).toBe('c1'));
-  expect(assistant.getState().confirmation?.title).toBe('Remove project permanently');
-  expect(assistant.getState().confirmation?.confirmLabel).toBe('Confirm');
-  assistant.confirm('c1', false);
+  await vi.waitFor(() => expect(readyForCall(assistant.getState(), 'c1')).toBeDefined());
+  const proposal = readyForCall(assistant.getState(), 'c1')!;
+  expect(proposal.title).toBe('Remove project permanently');
+  assistant.confirm(proposal.id, proposal.version, false);
   await sending;
   assistant.dispose();
 });
 
 it('does not consume the operation timeout while the user reviews', async () => {
-  vi.useFakeTimers();
-  try {
-    const execute = vi.fn().mockResolvedValue({ callId: 'c1', ok: true, text: 'Deleted' });
-    const generate = vi.fn().mockResolvedValueOnce({
-      text: '',
-      toolCalls: [{ id: 'c1', toolId: 'delete', arguments: { name: 'Phoenix' } }],
-    });
-    const assistant = createAgentBridge({
-      source: source(execute, async () => ({ revision: 1, tools: [remove] })),
-      model: { generate },
-      timeoutMs: 50,
-    });
-    const sending = assistant.send('Delete Phoenix.');
-    await vi.waitFor(() => expect(assistant.getState().confirmation?.id).toBe('c1'));
-    await vi.advanceTimersByTimeAsync(200);
-    assistant.confirm('c1', true);
-    await sending;
-    expect(execute).toHaveBeenCalledTimes(1);
-    assistant.dispose();
-  } finally {
-    vi.useRealTimers();
-  }
+  const execute = vi.fn().mockResolvedValue({ callId: 'c1', ok: true, text: 'Deleted' });
+  const generate = vi.fn().mockResolvedValueOnce({
+    text: '',
+    toolCalls: [{ id: 'c1', toolId: 'delete', arguments: { name: 'Phoenix' } }],
+  });
+  const assistant = createAgentBridge({
+    source: source(execute, async () => ({ revision: 1, tools: [remove] })),
+    model: { generate },
+    timeoutMs: 50,
+  });
+  const sending = assistant.send('Delete Phoenix.');
+  await vi.waitFor(() => expect(readyForCall(assistant.getState(), 'c1')).toBeDefined());
+  await new Promise((resolve) => setTimeout(resolve, 120));
+  const proposal = readyForCall(assistant.getState(), 'c1')!;
+  assistant.confirm(proposal.id, proposal.version, true);
+  await sending;
+  expect(execute).toHaveBeenCalledTimes(1);
+  assistant.dispose();
 });

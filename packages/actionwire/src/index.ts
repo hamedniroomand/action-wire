@@ -5,6 +5,7 @@ export { createAssistant } from '~/widget';
 
 export type { ErrorCode } from '~/core';
 export type {
+  ActionTarget,
   Activity,
   AgentAdapter,
   AgentTurn,
@@ -12,11 +13,16 @@ export type {
   AssistantOptions,
   AssistantState,
   BridgeOptions,
-  Confirmation,
   ConfirmationPolicy,
+  ContextItem,
+  ContextSnapshot,
+  ContextSource,
   Json,
   Message,
   MountedAssistant,
+  Proposal,
+  ProposalPreview,
+  ReviewOptions,
   TimelineItem,
   ToolCall,
   ToolDefinition,

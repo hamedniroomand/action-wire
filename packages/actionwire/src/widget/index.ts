@@ -23,6 +23,8 @@ export function createAssistant(options: AssistantOptions): MountedAssistant {
       ...(options.reviewTimeoutMs === undefined
         ? {}
         : { reviewTimeoutMs: options.reviewTimeoutMs }),
+      ...(options.context === undefined ? {} : { context: options.context }),
+      ...(options.review === undefined ? {} : { review: options.review }),
     });
     bridge = next;
     return next;
@@ -31,8 +33,14 @@ export function createAssistant(options: AssistantOptions): MountedAssistant {
   return {
     send: (text) => ensureBridge().send(text),
     refreshTools: () => ensureBridge().refreshTools(),
-    confirm: (id, approved) => {
-      ensureBridge().confirm(id, approved);
+    confirm: (id, version, approved) => {
+      ensureBridge().confirm(id, version, approved);
+    },
+    edit: (id, version, args) => {
+      ensureBridge().edit(id, version, args);
+    },
+    removeContext: (id) => {
+      ensureBridge().removeContext(id);
     },
     cancel: () => {
       bridge?.cancel();

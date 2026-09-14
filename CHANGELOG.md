@@ -4,6 +4,10 @@
 
 ### Changed
 
+- `ToolStatus` values are semantic (`succeeded`, `ready-for-review`, `outcome-unknown`, and others). The widget no longer exposes `confirmation` on assistant state.
+- `confirm(id, version, approved)` replaces the two-argument confirm method. Approval binds to a proposal version.
+- User messages may carry optional captured `context` items. The bridge serializes them as untrusted data in the model request only.
+
 - The widget is a bottom-center bar, 40px tall. It is collapsed to a 2px wire by
   default. `⌘/` (`Ctrl+/` on Windows and Linux) toggles it. Escape denies a
   confirmation, then closes the transcript, then collapses the bar.
@@ -19,9 +23,13 @@
   `--aw-transcript-max-height`.
 - Package subpath exports: `actionwire/core`, `actionwire/webmcp`,
   `actionwire/agent`, and `actionwire/widget`.
+- `Proposal`, `ContextItem`, `ContextSource`, `ReviewOptions`, and related types on the public API.
+- `edit(id, version, args)`, `removeContext(id)`, and bridge options `context`, `review`, and `reviewTimeoutMs`.
+- Shared `validateToolArguments` and `copyToolArguments` in `actionwire/core`.
 
 ### Removed
 
+- The `Confirmation` type and `AssistantState.confirmation`.
 - CSS variables `--aw-launcher-size`, `--aw-avatar-size`, `--aw-panel-width`,
   `--aw-panel-max-height`, `--aw-radius-bubble`, and `--aw-color-user`.
 

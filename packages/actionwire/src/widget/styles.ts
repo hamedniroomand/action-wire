@@ -196,7 +196,7 @@ button {
   }
 }
 
-.bar[data-mode='confirm'] {
+.bar[data-mode='review'] {
   background: var(--aw-color-warning);
   border-color: var(--aw-color-warning-border);
 }
@@ -249,6 +249,47 @@ button {
 .glyph.success { color: var(--aw-color-success); }
 .glyph.warn { color: var(--aw-color-warning-text); }
 .glyph.danger { color: var(--aw-color-danger); }
+
+.context-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  width: 100%;
+  margin-bottom: 6px;
+  max-width: min(var(--aw-bar-width), 100vw - 24px);
+}
+
+.context-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  padding: 2px 4px 2px 8px;
+  border: 1px solid var(--aw-color-border);
+  border-radius: var(--aw-radius-full);
+  background: var(--aw-color-raised);
+}
+
+.context-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 12rem;
+}
+
+.context-remove {
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: var(--aw-radius-full);
+  line-height: 1;
+  color: var(--aw-color-muted);
+}
+
+.context-remove:hover {
+  color: var(--aw-color-text);
+  background: var(--aw-color-border);
+}
 
 .main {
   position: relative;
@@ -359,7 +400,7 @@ button {
   color: var(--aw-color-accent);
 }
 
-.bar[data-mode='confirm'] .line {
+.bar[data-mode='review'] .line {
   color: var(--aw-color-warning-text);
   font-size: 13px;
 }
@@ -590,6 +631,7 @@ button {
   color: var(--aw-color-muted);
 }
 
+.entry-tool[data-status='succeeded'] .tool-status { color: var(--aw-color-success); }
 .entry-tool[data-status='success'] .tool-status { color: var(--aw-color-success); }
 .entry-tool[data-status='error'] .tool-status { color: var(--aw-color-danger); }
 
