@@ -6,6 +6,7 @@ import {
   initialProposal,
   invalidateDependents,
   prepareProposal,
+  publishPreparedProposal,
 } from '~/agent/proposals';
 import type { ToolDefinition, ToolSource } from '~/core';
 
@@ -66,6 +67,58 @@ it('prepares a read-only proposal without preview support as ready-for-review', 
   });
   expect(prepared.status).toBe('ready-for-review');
   expect(prepared.preview?.kind).toBe('unavailable');
+});
+
+it('calls the mapped preview tool once and never the write tool during preparation', async () => {
+  const preview: ToolDefinition = {
+    id: 'preview',
+    name: 'preview',
+    description: 'Preview',
+    inputSchema: { type: 'object', properties: { title: { type: 'string' } } },
+    readOnly: true,
+  };
+  const execute = vi.fn().mockResolvedValue({ callId: 'x', ok: true, text: 'Preview text' });
+  const proposal = initialProposal({
+    call: { id: 'c1', toolId: 'write', arguments: { title: 'Q1' } },
+    tool: write,
+    toolRevision: 1,
+    context: [],
+  });
+  const source: ToolSource = {
+    discover: async () => ({ revision: 1, tools: [write, preview] }),
+    execute,
+    subscribe: () => () => {},
+    dispose: () => {},
+  };
+  const prepared = await prepareProposal({
+    proposal,
+    tool: write,
+    snapshot: { revision: 1, tools: [write, preview] },
+    source,
+    review: { previewTools: { write: 'preview' } },
+    turnSignal: new AbortController().signal,
+    timeoutMs: 1000,
+    previewToken: { turn: 1, version: 1 },
+    turn: 1,
+  });
+  expect(prepared.preview).toEqual({ kind: 'application', text: 'Preview text' });
+  expect(execute).toHaveBeenCalledTimes(1);
+  expect(execute.mock.calls[0]?.[0].toolId).toBe('preview');
+});
+
+it('does not publish a stale preview result after the proposal version changes', () => {
+  const current = freezeProposal(
+    initialProposal({
+      call: { id: 'c1', toolId: 'write', arguments: {} },
+      tool: write,
+      toolRevision: 1,
+      context: [],
+    }),
+  );
+  const staleReady = freezeProposal({ ...current, status: 'ready-for-review' });
+  expect(
+    publishPreparedProposal({ ...current, version: 2, status: 'preparing' }, staleReady),
+  ).toBeUndefined();
 });
 
 it('does not approve a proposal with a stale version', async () => {
@@ -146,7 +199,7 @@ it('updates stored call arguments synchronously on edit', async () => {
     },
     model: { generate },
   });
-  void assistant.send('Edit.');
+  const sending = assistant.send('Edit.');
   await vi.waitFor(() =>
     expect(assistant.getState().proposals[0]?.status).toBe('ready-for-review'),
   );
@@ -154,5 +207,6 @@ it('updates stored call arguments synchronously on edit', async () => {
   assistant.edit(proposal.id, proposal.version, { n: 9 });
   expect(assistant.getState().proposals[0]?.call.arguments).toEqual({ n: 9 });
   assistant.cancel();
+  await sending;
   assistant.dispose();
 });
