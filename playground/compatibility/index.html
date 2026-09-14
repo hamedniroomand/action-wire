@@ -16,21 +16,188 @@
       href="/apple-touch-icon.png"
     />
     <title>WebMCP compatibility probe</title>
+    <style>
+      :root {
+        --ink: #111827;
+        --muted: #6b7280;
+        --line: #e5e7eb;
+        --surface: #fff;
+        --raised: #f8fafc;
+        --accent: #2563eb;
+        --pass: #16a34a;
+        --warn: #b45309;
+        --fail: #dc2626;
+        color-scheme: light;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 32px 20px 64px;
+        background: var(--raised);
+        color: var(--ink);
+        font-family: ui-sans-serif, system-ui, sans-serif;
+        line-height: 1.5;
+      }
+
+      main {
+        max-width: 680px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        margin: 0 0 4px;
+        font-size: 22px;
+      }
+
+      .lead {
+        margin: 0 0 20px;
+        color: var(--muted);
+      }
+
+      #run {
+        padding: 10px 18px;
+        border: 0;
+        border-radius: 10px;
+        background: var(--accent);
+        color: #fff;
+        font: inherit;
+        font-weight: 500;
+        cursor: pointer;
+      }
+
+      #run:disabled {
+        opacity: 0.55;
+        cursor: progress;
+      }
+
+      .banner {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 20px 0 0;
+        padding: 12px 14px;
+        border: 1px solid var(--line);
+        border-left: 4px solid var(--muted);
+        border-radius: 10px;
+        background: var(--surface);
+        font-weight: 500;
+      }
+
+      .banner[data-status='supported'] {
+        border-left-color: var(--pass);
+      }
+
+      .banner[data-status='unsupported'] {
+        border-left-color: var(--warn);
+      }
+
+      .banner[data-status='failed'] {
+        border-left-color: var(--fail);
+      }
+
+      #checks {
+        margin: 12px 0 0;
+        padding: 0;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--surface);
+        list-style: none;
+        overflow: hidden;
+      }
+
+      #checks:empty {
+        display: none;
+      }
+
+      #checks li {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        padding: 9px 14px;
+        border-top: 1px solid var(--line);
+        font-size: 14px;
+      }
+
+      #checks li:first-child {
+        border-top: 0;
+      }
+
+      #checks li::before {
+        content: '–';
+        flex: none;
+        width: 14px;
+        color: var(--muted);
+        text-align: center;
+      }
+
+      #checks li[data-state='pass']::before {
+        content: '✓';
+        color: var(--pass);
+      }
+
+      #checks li[data-state='fail']::before {
+        content: '✕';
+        color: var(--fail);
+      }
+
+      #checks .value {
+        margin-left: auto;
+        color: var(--muted);
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 12px;
+      }
+
+      details {
+        margin: 12px 0 0;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--surface);
+      }
+
+      summary {
+        padding: 10px 14px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+      }
+
+      #report {
+        margin: 0;
+        padding: 0 14px 14px;
+        overflow-x: auto;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 12px;
+        line-height: 1.45;
+      }
+    </style>
   </head>
   <body>
-    <h1>WebMCP compatibility probe</h1>
-    <p>This page tests a local echo tool. It does not use a model.</p>
-    <button
-      id="run"
-      type="button"
-    >
-      Run probe
-    </button>
-    <pre
-      id="report"
-      role="status"
-    >
-Ready</pre>
+    <main>
+      <h1>WebMCP compatibility probe</h1>
+      <p class="lead">This page tests a local echo tool. It does not use a model.</p>
+      <button
+        id="run"
+        type="button"
+      >
+        Run probe
+      </button>
+      <p
+        id="status"
+        class="banner"
+        role="status"
+      >
+        Ready
+      </p>
+      <ul id="checks"></ul>
+      <details open>
+        <summary>Full report</summary>
+        <pre id="report">Ready</pre>
+      </details>
+    </main>
     <script
       type="module"
       src="./main.ts"
