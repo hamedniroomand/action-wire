@@ -11,14 +11,14 @@ const HOSTS = [
   { name: 'Svelte', url: 'http://127.0.0.1:4179/' },
 ] as const;
 
-test('keeps the desktop panel inside the viewport', async ({ page }) => {
+test('keeps the desktop bar at its size and inside the viewport', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto('/');
   await page.getByRole('button', { name: 'Open assistant' }).click();
   const box = await panelBox(page);
-  expect(box.width).toBeGreaterThanOrEqual(360);
-  expect(box.width).toBeLessThanOrEqual(400);
-  expect(box.height).toBeLessThanOrEqual(640);
+  expect(box.width).toBeGreaterThanOrEqual(600);
+  expect(box.width).toBeLessThanOrEqual(642);
+  expect(box.height).toBeLessThanOrEqual(42);
   expect(box.right).toBeLessThanOrEqual(1280 + 1);
   expect(box.bottom).toBeLessThanOrEqual(800 + 1);
 });
@@ -35,9 +35,9 @@ test('disables motion when the user prefers reduced motion', async ({ page }) =>
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
   const duration = await page.locator('action-wire').evaluate((node) => {
-    const launcher = node.shadowRoot?.querySelector('.launcher');
-    if (!(launcher instanceof HTMLElement)) throw new Error('missing launcher');
-    return getComputedStyle(launcher).transitionDuration;
+    const tab = node.shadowRoot?.querySelector('.wire-tab');
+    if (!(tab instanceof HTMLElement)) throw new Error('missing wire tab');
+    return getComputedStyle(tab).transitionDuration;
   });
   expect(duration === '0s' || duration === '0ms').toBe(true);
 });
@@ -103,28 +103,28 @@ async function assertMobileComposer(page: Page, width: number): Promise<void> {
   await page.goto('/');
   await page.getByRole('button', { name: 'Open assistant' }).click();
   const metrics = await page.locator('action-wire').evaluate((node) => {
-    const panel = node.shadowRoot?.querySelector('[role="dialog"]');
-    const composer = node.shadowRoot?.querySelector('.composer');
-    if (!(panel instanceof HTMLElement) || !(composer instanceof HTMLElement)) {
-      throw new Error('missing panel');
+    const bar = node.shadowRoot?.querySelector('[role="dialog"]');
+    const field = node.shadowRoot?.querySelector('input[aria-label="Message"]');
+    if (!(bar instanceof HTMLElement) || !(field instanceof HTMLElement)) {
+      throw new Error('missing bar');
     }
-    const frame = panel.getBoundingClientRect();
-    const composerBox = composer.getBoundingClientRect();
+    const frame = bar.getBoundingClientRect();
+    const fieldBox = field.getBoundingClientRect();
     return {
       left: frame.left,
       right: frame.right,
-      overflowX: panel.scrollWidth - panel.clientWidth,
-      composerTop: composerBox.top,
-      composerBottom: composerBox.bottom,
+      overflowX: bar.scrollWidth - bar.clientWidth,
+      fieldTop: fieldBox.top,
+      fieldBottom: fieldBox.bottom,
       viewportWidth: window.innerWidth,
       viewportHeight: window.innerHeight,
     };
   });
-  expect(metrics.left).toBeLessThanOrEqual(1);
-  expect(metrics.right).toBeGreaterThanOrEqual(metrics.viewportWidth - 1);
+  expect(metrics.left).toBeGreaterThanOrEqual(-1);
+  expect(metrics.right).toBeLessThanOrEqual(metrics.viewportWidth + 1);
   expect(metrics.overflowX).toBeLessThanOrEqual(1);
-  expect(metrics.composerTop).toBeGreaterThanOrEqual(0);
-  expect(metrics.composerBottom).toBeLessThanOrEqual(metrics.viewportHeight + 1);
+  expect(metrics.fieldTop).toBeGreaterThanOrEqual(0);
+  expect(metrics.fieldBottom).toBeLessThanOrEqual(metrics.viewportHeight + 1);
 }
 
 async function panelBox(page: Page): Promise<{

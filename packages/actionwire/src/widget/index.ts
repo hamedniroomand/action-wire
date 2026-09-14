@@ -1,12 +1,13 @@
 import { createAgentBridge } from '~/agent';
-import type { Assistant, AssistantOptions, MountedAssistant, ToolSource } from '~/core';
+import type { Assistant, AssistantOptions, MountedAssistant, Theme, ToolSource } from '~/core';
 import { createWebMCPSource } from '~/webmcp';
-import { bindAssistant, defineAssistantElement, TAG } from '~/widget/assistant-element';
+import { bindAssistant, defineAssistantElement, TAG } from '~/widget/element';
 
 export function createAssistant(options: AssistantOptions): MountedAssistant {
   let bridge: Assistant | undefined;
   let host: HTMLElement | undefined;
   let ownedSource: ToolSource | undefined;
+  let theme: Theme = options.theme ?? 'system';
 
   function ensureBridge(): Assistant {
     if (bridge !== undefined) return bridge;
@@ -52,6 +53,7 @@ export function createAssistant(options: AssistantOptions): MountedAssistant {
       const assistant = ensureBridge();
       if (host === undefined) {
         host = document.createElement(TAG);
+        host.dataset['theme'] = theme;
         bindAssistant(host, assistant, options.developerMode === true);
       }
       const parent = target ?? document.body;
@@ -59,6 +61,10 @@ export function createAssistant(options: AssistantOptions): MountedAssistant {
     },
     unmount() {
       host?.remove();
+    },
+    setTheme(next) {
+      theme = next;
+      if (host !== undefined) host.dataset['theme'] = next;
     },
   };
 }

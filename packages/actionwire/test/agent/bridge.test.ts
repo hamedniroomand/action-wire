@@ -2,7 +2,7 @@ import { expect, it, vi } from 'vitest';
 
 import { createAgentBridge } from '~/agent/bridge';
 import { AgentError } from '~/core';
-import type { ToolDefinition, ToolSource } from '~/core';
+import type { AgentAdapter, ToolDefinition, ToolSource } from '~/core';
 
 const list: ToolDefinition = {
   id: 'list',
@@ -349,3 +349,39 @@ it.each(['during model generation', 'between calls'])(
     assistant.dispose();
   },
 );
+
+it('sees a tool that a call registered before the next model round', async () => {
+  let tools: ToolDefinition[] = [list, open];
+  let revision = 1;
+  const listeners = new Set<() => void>();
+  const execute = vi.fn(async (call: { id: string }) => {
+    // Opening a project registers the contextual tools, like the playground does.
+    tools = [list, open, rename];
+    revision += 1;
+    for (const listener of listeners) listener();
+    return { callId: call.id, ok: true, text: 'Opened Atlas' };
+  });
+  const generate = vi
+    .fn<AgentAdapter['generate']>()
+    .mockResolvedValueOnce({
+      text: '',
+      toolCalls: [{ id: 'c1', toolId: 'open', arguments: { name: 'Atlas' } }],
+    })
+    .mockResolvedValueOnce({ text: 'Atlas is open.', toolCalls: [] });
+  const assistant = createAgentBridge({
+    source: {
+      discover: async () => ({ revision, tools }),
+      execute,
+      subscribe: (listener) => {
+        listeners.add(listener);
+        return () => listeners.delete(listener);
+      },
+      dispose: () => {},
+    },
+    model: { generate },
+  });
+  await assistant.send('Archive Atlas.');
+  const secondRound = generate.mock.calls[1]?.[0];
+  expect(secondRound?.tools.map((tool) => tool.id)).toEqual(['list', 'open', 'rename']);
+  expect(assistant.getState().error).toBeUndefined();
+});

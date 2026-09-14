@@ -48,8 +48,8 @@ test('does not depend on React, Vue, or Svelte', async () => {
 
 async function send(page: Page, text: string): Promise<void> {
   await page.locator('action-wire').evaluate((node, value) => {
-    const field = node.shadowRoot?.querySelector('textarea');
-    if (!(field instanceof HTMLTextAreaElement)) throw new Error('The composer is missing.');
+    const field = node.shadowRoot?.querySelector('input[aria-label="Message"]');
+    if (!(field instanceof HTMLInputElement)) throw new Error('The input is missing.');
     field.value = value;
     field.dispatchEvent(
       new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }),

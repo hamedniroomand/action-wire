@@ -61,6 +61,7 @@ test('discovers native page tools and runs listProjects without a WebMCP test do
 
   await page.getByRole('button', { name: 'Open assistant' }).click();
   await send(page, 'List my projects.');
+  await openTranscript(page);
   await expect(
     page.locator('action-wire').locator('.tool-name', { hasText: 'listProjects' }),
   ).toBeVisible();
@@ -70,10 +71,14 @@ test('discovers native page tools and runs listProjects without a WebMCP test do
   await expect(page.getByRole('button', { name: 'Phoenix' })).toBeVisible();
 });
 
+async function openTranscript(page: Page): Promise<void> {
+  await page.locator('action-wire').getByRole('button', { name: 'Transcript' }).click();
+}
+
 async function send(page: Page, text: string): Promise<void> {
   await page.locator('action-wire').evaluate((node, value) => {
-    const field = node.shadowRoot?.querySelector('textarea');
-    if (!(field instanceof HTMLTextAreaElement)) throw new Error('The composer is missing.');
+    const field = node.shadowRoot?.querySelector('input[aria-label="Message"]');
+    if (!(field instanceof HTMLInputElement)) throw new Error('The input is missing.');
     field.value = value;
     field.dispatchEvent(
       new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }),
@@ -154,6 +159,7 @@ test('discovers and runs native tools under a CSP that forbids eval', async ({ p
 
   await page.getByRole('button', { name: 'Open assistant' }).click();
   await send(page, 'List my projects.');
+  await openTranscript(page);
   await expect(
     page.locator('action-wire').locator('.tool-status', { hasText: 'Success' }),
   ).toBeVisible();

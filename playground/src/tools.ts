@@ -56,7 +56,8 @@ const GLOBAL_TOOLS: readonly ToolSpec[] = [
   },
   {
     name: 'openProject',
-    description: 'Open a project by id.',
+    description:
+      'Open a project by id. Rename, archive, and delete tools are available while a project is open.',
     readOnly: true,
     inputSchema: ID,
     run: async (projects, input) => {

@@ -9,6 +9,7 @@ test('shows an unsupported message when the native API is absent', async ({ page
 test('reports an unavailable tool when discovery returns none', async ({ page }) => {
   await openCase(page, 'empty');
   await send(page, 'List projects.');
+  await openTranscript(page);
   await expect(
     page.locator('.tool-summary').filter({ hasText: 'This tool is not available.' }),
   ).toBeVisible();
@@ -17,6 +18,7 @@ test('reports an unavailable tool when discovery returns none', async ({ page })
 test('shows a tool error when the handler rejects', async ({ page }) => {
   await openCase(page, 'reject');
   await send(page, 'List projects.');
+  await openTranscript(page);
   await expect(page.locator('.tool-status', { hasText: 'Error' })).toBeVisible();
   await expect(page.locator('.tool-summary').filter({ hasText: 'The tool failed.' })).toBeVisible();
 });
@@ -24,6 +26,7 @@ test('shows a tool error when the handler rejects', async ({ page }) => {
 test('rejects malformed model arguments', async ({ page }) => {
   await openCase(page, 'invalid');
   await send(page, 'Rename it.');
+  await openTranscript(page);
   await expect(
     page
       .locator('.tool-summary')
@@ -34,7 +37,7 @@ test('rejects malformed model arguments', async ({ page }) => {
 test('shows a timeout when the model does not return', async ({ page }) => {
   await openCase(page, 'timeout');
   await send(page, 'Hello');
-  await expect(page.locator('.timeline-error')).toHaveText('The assistant timed out.');
+  await expect(statusLine(page)).toContainText('The assistant timed out.');
 });
 
 test('cancels an in-flight turn on abort', async ({ page }) => {
@@ -48,7 +51,7 @@ test('cancels an in-flight turn on abort', async ({ page }) => {
     if (typeof cancel !== 'function') throw new Error('missing cancel');
     cancel.call(assistant);
   });
-  await expect(page.locator('.timeline-error')).toHaveText('The assistant was cancelled.');
+  await expect(statusLine(page)).toContainText('The assistant was cancelled.');
 });
 
 test('does not run a stale confirmation after the tool list changes', async ({ page }) => {
@@ -61,6 +64,7 @@ test('does not run a stale confirmation after the tool list changes', async ({ p
     bump();
   });
   await page.getByRole('button', { name: 'Delete' }).click();
+  await openTranscript(page);
   await expect(
     page
       .locator('.tool-summary')
@@ -74,6 +78,7 @@ test('does not run a stale confirmation after the tool list changes', async ({ p
 test('drops page tools after navigation', async ({ page }) => {
   await openCase(page, 'navigate');
   await send(page, 'List projects.');
+  await openTranscript(page);
   await expect(page.locator('.tool-name', { hasText: 'list' })).toBeVisible();
   await expect(page.locator('.tool-status', { hasText: 'Success' })).toBeVisible();
   await page.evaluate(() => {
@@ -115,10 +120,18 @@ async function openCase(page: Page, name: string): Promise<void> {
   await page.getByRole('button', { name: 'Open assistant' }).click();
 }
 
+async function openTranscript(page: Page): Promise<void> {
+  await page.locator('action-wire').getByRole('button', { name: 'Transcript' }).click();
+}
+
+function statusLine(page: Page) {
+  return page.locator('action-wire').locator('[role="status"]');
+}
+
 async function send(page: Page, text: string): Promise<void> {
   await page.locator('action-wire').evaluate((node, value) => {
-    const field = node.shadowRoot?.querySelector('textarea');
-    if (!(field instanceof HTMLTextAreaElement)) throw new Error('The composer is missing.');
+    const field = node.shadowRoot?.querySelector('input[aria-label="Message"]');
+    if (!(field instanceof HTMLInputElement)) throw new Error('The input is missing.');
     field.value = value;
     field.dispatchEvent(
       new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }),

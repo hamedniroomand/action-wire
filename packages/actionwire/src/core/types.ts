@@ -73,6 +73,7 @@ export interface Assistant {
   dispose(): void;
 }
 export type ConfirmationPolicy = (tool: ToolDefinition, call: ToolCall) => boolean;
+export type Theme = 'light' | 'dark' | 'system';
 export type BridgeOptions = {
   source: ToolSource;
   model: AgentAdapter;
@@ -85,10 +86,12 @@ export type AssistantOptions = {
   source?: ToolSource;
   requiresConfirmation?: ConfirmationPolicy;
   developerMode?: boolean;
+  theme?: Theme;
   maxRounds?: number;
   timeoutMs?: number;
 };
 export interface MountedAssistant extends Assistant {
   mount(target?: HTMLElement): void;
   unmount(): void;
+  setTheme(theme: Theme): void;
 }

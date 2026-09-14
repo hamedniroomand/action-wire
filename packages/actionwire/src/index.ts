@@ -24,4 +24,5 @@ export type {
   ToolSnapshot,
   ToolSource,
   ToolStatus,
+  Theme,
 } from '~/core';

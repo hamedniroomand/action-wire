@@ -30,6 +30,7 @@ test('opens Phoenix, renames to Aurora, denies then deletes once, and refreshes 
   await page.getByRole('button', { name: 'Open assistant' }).click();
 
   await send(page, 'Open my latest project.');
+  await openTranscript(page);
   await expect(page.getByRole('heading', { name: 'Phoenix', exact: true })).toBeVisible();
   await expect(
     page.locator('action-wire').locator('.tool-name', { hasText: 'openProject' }),
@@ -73,10 +74,14 @@ test('opens Phoenix, renames to Aurora, denies then deletes once, and refreshes 
   expect(names).not.toContain('deleteProject');
 });
 
+async function openTranscript(page: Page): Promise<void> {
+  await page.locator('action-wire').getByRole('button', { name: 'Transcript' }).click();
+}
+
 async function send(page: Page, text: string): Promise<void> {
   await page.locator('action-wire').evaluate((node, value) => {
-    const field = node.shadowRoot?.querySelector('textarea');
-    if (!(field instanceof HTMLTextAreaElement)) throw new Error('The composer is missing.');
+    const field = node.shadowRoot?.querySelector('input[aria-label="Message"]');
+    if (!(field instanceof HTMLInputElement)) throw new Error('The input is missing.');
     field.value = value;
     field.dispatchEvent(
       new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }),

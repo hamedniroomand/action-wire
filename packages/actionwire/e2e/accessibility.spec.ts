@@ -1,40 +1,42 @@
 import { expect, test } from '@playwright/test';
 
-test('keeps the panel inside 320px and the composer visible', async ({ page }) => {
+test('keeps the bar inside a 320px viewport', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 360 });
   await page.goto('/');
   await page.getByRole('button', { name: 'Open assistant' }).click();
   const metrics = await page.locator('action-wire').evaluate((node) => {
-    const panel = node.shadowRoot?.querySelector('[role="dialog"]');
-    const composer = node.shadowRoot?.querySelector('.composer');
-    if (!(panel instanceof HTMLElement) || !(composer instanceof HTMLElement)) {
-      throw new Error('missing panel');
+    const bar = node.shadowRoot?.querySelector('[role="dialog"]');
+    const field = node.shadowRoot?.querySelector('input[aria-label="Message"]');
+    if (!(bar instanceof HTMLElement) || !(field instanceof HTMLElement)) {
+      throw new Error('missing bar');
     }
-    const panelBox = panel.getBoundingClientRect();
-    const composerBox = composer.getBoundingClientRect();
+    const barBox = bar.getBoundingClientRect();
+    const fieldBox = field.getBoundingClientRect();
     return {
-      overflowX: panel.scrollWidth - panel.clientWidth,
-      panelRight: panelBox.right,
-      panelBottom: panelBox.bottom,
-      composerTop: composerBox.top,
-      composerBottom: composerBox.bottom,
+      overflowX: bar.scrollWidth - bar.clientWidth,
+      barLeft: barBox.left,
+      barRight: barBox.right,
+      barBottom: barBox.bottom,
+      fieldTop: fieldBox.top,
+      fieldBottom: fieldBox.bottom,
       viewportWidth: window.innerWidth,
       viewportHeight: window.innerHeight,
     };
   });
   expect(metrics.overflowX).toBeLessThanOrEqual(1);
-  expect(metrics.panelRight).toBeLessThanOrEqual(metrics.viewportWidth + 1);
-  expect(metrics.composerTop).toBeGreaterThanOrEqual(0);
-  expect(metrics.composerBottom).toBeLessThanOrEqual(metrics.viewportHeight + 1);
-  expect(metrics.panelBottom).toBeLessThanOrEqual(metrics.viewportHeight + 1);
+  expect(metrics.barLeft).toBeGreaterThanOrEqual(-1);
+  expect(metrics.barRight).toBeLessThanOrEqual(metrics.viewportWidth + 1);
+  expect(metrics.fieldTop).toBeGreaterThanOrEqual(0);
+  expect(metrics.fieldBottom).toBeLessThanOrEqual(metrics.viewportHeight + 1);
+  expect(metrics.barBottom).toBeLessThanOrEqual(metrics.viewportHeight + 1);
 });
 
 test('runs the native delete only after the Delete click', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Open assistant' }).click();
   await page.locator('action-wire').evaluate((node) => {
-    const field = node.shadowRoot?.querySelector('textarea');
-    if (!(field instanceof HTMLTextAreaElement)) throw new Error('missing composer');
+    const field = node.shadowRoot?.querySelector('input[aria-label="Message"]');
+    if (!(field instanceof HTMLInputElement)) throw new Error('missing input');
     field.value = 'Delete Phoenix.';
     field.dispatchEvent(
       new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }),
