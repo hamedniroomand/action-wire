@@ -159,3 +159,61 @@ it.each([
     code,
   });
 });
+
+it('replays a removed tool under the alias the provider first saw', async () => {
+  const fetchMock = vi
+    .fn()
+    .mockImplementation(() => jsonResponse(200, { choices: [{ message: { content: 'done' } }] }));
+  vi.stubGlobal('fetch', fetchMock);
+  const adapter = openAICompatible({ endpoint: '/api/assistant' });
+  await adapter.generate({ messages: [{ role: 'user', content: 'open it' }], tools });
+  const history: Message[] = [
+    { role: 'user', content: 'open it' },
+    { role: 'assistant', content: '', toolCalls: [{ id: 'c1', toolId: 'open', arguments: {} }] },
+    { role: 'tool', content: 'Opened', callId: 'c1' },
+  ];
+  await adapter.generate({ messages: history, tools: [tools[0]!] });
+  const second = fetchMock.mock.calls[1]?.[1];
+  expect(second).toEqual(expect.objectContaining({ body: expect.any(String) }));
+  const parsed: unknown = JSON.parse(String(second?.body));
+  const messages =
+    typeof parsed === 'object' && parsed !== null ? Reflect.get(parsed, 'messages') : undefined;
+  const assistantMessage = Array.isArray(messages) ? messages[1] : undefined;
+  const toolCalls =
+    typeof assistantMessage === 'object' &&
+    assistantMessage !== null &&
+    Array.isArray(Reflect.get(assistantMessage, 'tool_calls'))
+      ? Reflect.get(assistantMessage, 'tool_calls')
+      : undefined;
+  const firstCall =
+    Array.isArray(toolCalls) && typeof toolCalls[0] === 'object' && toolCalls[0] !== null
+      ? Reflect.get(toolCalls[0], 'function')
+      : undefined;
+  const name =
+    typeof firstCall === 'object' && firstCall !== null
+      ? Reflect.get(firstCall, 'name')
+      : undefined;
+  expect(name).toBe('openProject');
+});
+
+it('keeps reverse lookup scoped to each generate call', async () => {
+  const fetchMock = vi.fn().mockResolvedValue(
+    jsonResponse(200, {
+      choices: [
+        {
+          message: {
+            content: '',
+            tool_calls: [
+              { id: 'c1', type: 'function', function: { name: 'openProject', arguments: '{}' } },
+            ],
+          },
+        },
+      ],
+    }),
+  );
+  vi.stubGlobal('fetch', fetchMock);
+  const adapter = openAICompatible({ endpoint: '/api/assistant' });
+  await expect(
+    adapter.generate({ messages: [{ role: 'user', content: 'Go' }], tools: [tools[0]!] }),
+  ).rejects.toBeInstanceOf(AgentError);
+});

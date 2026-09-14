@@ -1,13 +1,14 @@
 import { afterEach, expect, it } from 'vitest';
 
-import { AgentError } from '~/core';
+import { AgentError, createToolRegistry } from '~/core';
 import { createWebMCPSource } from '~/webmcp';
 
 type FakeTool = {
   name: string;
   description: string;
-  inputSchema?: object | string;
-  annotations?: Record<string, boolean>;
+  title?: string;
+  inputSchema?: object | string | null;
+  annotations?: Record<string, boolean | string>;
   window: object;
   origin: string;
 };
@@ -69,6 +70,7 @@ it('discovers tools registered before mount', async () => {
       description: 'Return the probe text.',
       inputSchema: schema,
       readOnly: true,
+      untrustedContent: false,
     },
   ]);
   source.dispose();
@@ -152,6 +154,104 @@ it('returns an empty snapshot when no current-document tools exist', async () =>
   });
   const source = createWebMCPSource();
   await expect(source.discover()).resolves.toEqual({ revision: 0, tools: [] });
+  source.dispose();
+});
+
+it('discovers a tool with no input schema as an open object', async () => {
+  installNative((window) => [
+    {
+      name: 'ping',
+      description: 'Return a pong.',
+      origin: 'http://127.0.0.1:4173',
+      window,
+    },
+  ]);
+  const source = createWebMCPSource();
+  const snapshot = await source.discover();
+  expect(snapshot.tools).toEqual([
+    {
+      id: 'ping',
+      name: 'ping',
+      description: 'Return a pong.',
+      inputSchema: { type: 'object' },
+    },
+  ]);
+  source.dispose();
+});
+
+it('preserves title and supported annotation hints', async () => {
+  installNative((window) => [
+    {
+      name: 'annotate',
+      title: 'Annotate item',
+      description: 'Apply annotations.',
+      origin: 'http://127.0.0.1:4173',
+      window,
+      inputSchema: schema,
+      annotations: {
+        readOnlyHint: true,
+        consequentialHint: false,
+        untrustedContentHint: true,
+      },
+    },
+  ]);
+  const source = createWebMCPSource();
+  const discovered = await source.discover();
+  const registry = createToolRegistry();
+  const snapshot = registry.replace(discovered.tools);
+  expect(snapshot.tools[0]).toEqual({
+    id: 'annotate',
+    name: 'annotate',
+    title: 'Annotate item',
+    description: 'Apply annotations.',
+    inputSchema: schema,
+    readOnly: true,
+    consequential: false,
+    untrustedContent: true,
+  });
+  source.dispose();
+});
+
+it.each([
+  ['null input schema', null],
+  ['malformed JSON schema', '{'],
+  ['invalid schema object', { type: 'string' }],
+])('rejects %s with INVALID_SCHEMA', async (_name, inputSchema) => {
+  installNative((window) => [
+    {
+      name: 'bad',
+      description: 'Bad schema.',
+      origin: 'http://127.0.0.1:4173',
+      window,
+      inputSchema,
+    },
+  ]);
+  const source = createWebMCPSource();
+  await expect(source.discover()).rejects.toMatchObject({ code: 'INVALID_SCHEMA' });
+  source.dispose();
+});
+
+it('excludes a registration that belongs to another document', async () => {
+  const otherWindow = {};
+  installNative((window) => [
+    {
+      name: 'mine',
+      description: 'A current-document tool.',
+      origin: 'http://127.0.0.1:4173',
+      window,
+      inputSchema: schema,
+    },
+    {
+      name: 'theirs',
+      description: 'A tool from another document.',
+      origin: 'http://127.0.0.1:4173',
+      window: otherWindow,
+      inputSchema: schema,
+    },
+  ]);
+  const source = createWebMCPSource();
+  const snapshot = await source.discover();
+  expect(snapshot.tools.map((tool) => tool.id)).toEqual(['mine']);
   source.dispose();
 });
 

@@ -41,7 +41,13 @@ export function createToolRegistry() {
           description: tool.description,
           inputSchema: schema,
         };
-        for (const key of ['readOnly', 'consequential'] as const) {
+        if (tool.title !== undefined) {
+          if (typeof tool.title !== 'string' || !tool.title.trim()) {
+            throw new AgentError('INVALID_SCHEMA', 'Tool title must contain text.');
+          }
+          copy.title = tool.title;
+        }
+        for (const key of ['readOnly', 'consequential', 'untrustedContent'] as const) {
           if (tool[key] !== undefined) {
             if (typeof tool[key] !== 'boolean')
               throw new AgentError('INVALID_SCHEMA', 'Tool hints must be boolean.');

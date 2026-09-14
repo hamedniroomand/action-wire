@@ -1,4 +1,4 @@
-import { afterEach, expect, it } from 'vitest';
+import { afterEach, expect, it, vi } from 'vitest';
 
 import { createWebMCPSource } from '~/webmcp';
 
@@ -88,6 +88,82 @@ it('runs the original app handler once', async () => {
     text: 'Phoenix',
     data: { text: 'Phoenix' },
   });
+  source.dispose();
+});
+
+it('executes a schema-less tool with an object payload', async () => {
+  const executeTool = vi.fn().mockResolvedValue({ text: 'pong' });
+  let native: FakeTool | undefined;
+  installNative(
+    (window) => {
+      native = {
+        name: 'ping',
+        description: 'Return a pong.',
+        origin: 'http://127.0.0.1:4173',
+        window,
+      };
+      return [native];
+    },
+    { executeTool },
+  );
+  const source = createWebMCPSource();
+  const snapshot = await source.discover();
+  const result = await source.execute(
+    { id: 'c1', toolId: 'ping', arguments: {} },
+    snapshot.revision,
+  );
+  expect(executeTool).toHaveBeenCalledTimes(1);
+  expect(executeTool.mock.calls[0]?.[0]).toBe(native);
+  expect(executeTool.mock.calls[0]?.[1]).toEqual({});
+  expect(result).toMatchObject({ callId: 'c1', ok: true, text: 'pong' });
+  source.dispose();
+});
+
+it('sends an object payload to a tool that declared an object schema', async () => {
+  const executeTool = vi.fn().mockResolvedValue({ text: 'ok' });
+  installNative(
+    (window) => [
+      {
+        name: 'setStatus',
+        description: 'Set the status.',
+        origin: 'http://127.0.0.1:4173',
+        window,
+        inputSchema: schema,
+      },
+    ],
+    { executeTool },
+  );
+  const source = createWebMCPSource();
+  const snapshot = await source.discover();
+  await source.execute(
+    { id: 'c1', toolId: 'setStatus', arguments: { text: 'ready' } },
+    snapshot.revision,
+  );
+  expect(executeTool.mock.calls[0]?.[1]).toEqual({ text: 'ready' });
+  source.dispose();
+});
+
+it('sends a JSON string payload to a tool that declared a string schema', async () => {
+  const executeTool = vi.fn().mockResolvedValue({ text: 'ok' });
+  installNative(
+    (window) => [
+      {
+        name: 'setStatus',
+        description: 'Set the status.',
+        origin: 'http://127.0.0.1:4173',
+        window,
+        inputSchema: JSON.stringify(schema),
+      },
+    ],
+    { executeTool },
+  );
+  const source = createWebMCPSource();
+  const snapshot = await source.discover();
+  await source.execute(
+    { id: 'c1', toolId: 'setStatus', arguments: { text: 'ready' } },
+    snapshot.revision,
+  );
+  expect(executeTool.mock.calls[0]?.[1]).toBe('{"text":"ready"}');
   source.dispose();
 });
 

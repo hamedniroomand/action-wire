@@ -4,10 +4,12 @@ export type Json = null | boolean | number | string | Json[] | { [key: string]: 
 export type ToolDefinition = {
   id: string;
   name: string;
+  title?: string;
   description: string;
   inputSchema: Record<string, Json>;
   readOnly?: boolean;
   consequential?: boolean;
+  untrustedContent?: boolean;
 };
 export type ToolSnapshot = { revision: number; tools: readonly ToolDefinition[] };
 export type ToolCall = { id: string; toolId: string; arguments: Record<string, Json> };

@@ -1,4 +1,5 @@
 import { buildConfirmation, needsConfirmation } from '~/agent/confirmation';
+import { SAFETY_INSTRUCTIONS } from '~/agent/instructions';
 import { createSessionStore } from '~/agent/session';
 import { AgentError } from '~/core';
 import type {
@@ -74,7 +75,7 @@ export function createAgentBridge(options: BridgeOptions): Assistant {
         if (signal.aborted) throw abortError(signal);
       }
       const result = await options.model.generate({
-        messages: session.getState().messages,
+        messages: withInstructions(session.getState().messages),
         tools: snapshot.tools,
         signal,
       });
@@ -346,4 +347,8 @@ function toStateError(error: unknown): { code: ErrorCode; message: string } {
 
 function isAbortError(error: unknown): boolean {
   return typeof error === 'object' && error !== null && Reflect.get(error, 'name') === 'AbortError';
+}
+
+function withInstructions(messages: readonly Message[]): readonly Message[] {
+  return [{ role: 'system', content: SAFETY_INSTRUCTIONS }, ...messages];
 }

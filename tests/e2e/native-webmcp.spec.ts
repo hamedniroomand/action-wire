@@ -55,7 +55,10 @@ test('discovers native page tools and runs listProjects without a WebMCP test do
     path: evidence,
     contentType: 'application/json',
   });
-  expect(report.status, 'Native WebMCP is required. This suite must not skip.').toBe('supported');
+  expect(
+    report.status,
+    'pnpm test:native must fail when document.modelContext is absent. Run Chromium with --enable-experimental-web-platform-features.',
+  ).toBe('supported');
   expect(report.names).toContain('listProjects');
   expect(report.names).not.toContain('deleteProject');
 

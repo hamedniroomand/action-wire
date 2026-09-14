@@ -26,12 +26,19 @@ export function normalizeNativeTool(tool: NativeRegisteredTool): NormalizedNativ
     description,
     inputSchema: schema,
   };
+  const title = Reflect.get(tool, 'title');
+  if (typeof title === 'string' && title.trim()) definition.title = title;
   const annotations = Reflect.get(tool, 'annotations');
   if (typeof annotations === 'object' && annotations !== null) {
-    const readOnly = Reflect.get(annotations, 'readOnlyHint');
-    if (typeof readOnly === 'boolean') definition.readOnly = readOnly;
-    const consequential = Reflect.get(annotations, 'consequentialHint');
-    if (typeof consequential === 'boolean') definition.consequential = consequential;
+    const hints = [
+      ['readOnlyHint', 'readOnly'],
+      ['consequentialHint', 'consequential'],
+      ['untrustedContentHint', 'untrustedContent'],
+    ] as const;
+    for (const [nativeKey, field] of hints) {
+      const value = Reflect.get(annotations, nativeKey);
+      if (typeof value === 'boolean') definition[field] = value;
+    }
   }
   return { definition, native: tool, encoding };
 }
@@ -40,6 +47,9 @@ function parseSchema(input: unknown): {
   schema: Record<string, Json>;
   encoding: NativeEncoding;
 } {
+  if (input === undefined) {
+    return { schema: { type: 'object' }, encoding: 'object' };
+  }
   if (typeof input === 'string') {
     let parsed: unknown;
     try {

@@ -102,3 +102,35 @@ it('accepts nested boolean schemas and supported dialects without changing the i
     expect(registry.replace([input]).tools[0]?.inputSchema).toEqual(input.inputSchema);
   }
 });
+
+it('preserves optional title and hint metadata in frozen snapshots', () => {
+  const registry = createToolRegistry();
+  const withMeta = {
+    ...tool(),
+    title: 'Echo input',
+    consequential: true,
+    untrustedContent: false,
+  };
+  const snapshot = registry.replace([withMeta]);
+  expect(snapshot.tools[0]?.title).toBe('Echo input');
+  expect(snapshot.tools[0]?.consequential).toBe(true);
+  expect(snapshot.tools[0]?.untrustedContent).toBe(false);
+  expect(snapshot.tools[0]?.readOnly).toBe(true);
+});
+
+it.each([
+  ['empty title', { title: ' ' }],
+  ['invalid readOnly hint', { readOnly: 'yes' as unknown as boolean }],
+  ['invalid untrustedContent hint', { untrustedContent: 1 as unknown as boolean }],
+])('rejects %s', (_name, patch) => {
+  const registry = createToolRegistry();
+  registry.replace([tool()]);
+  expect(() => registry.replace([{ ...tool(), ...patch }])).toThrow(AgentError);
+});
+
+it('bumps revision when metadata changes but ids stay the same', () => {
+  const registry = createToolRegistry();
+  const first = registry.replace([tool()]);
+  const second = registry.replace([{ ...tool(), untrustedContent: true }]);
+  expect(second.revision).toBe(first.revision + 1);
+});

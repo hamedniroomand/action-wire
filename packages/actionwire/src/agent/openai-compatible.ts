@@ -1,27 +1,28 @@
+import { createAliasTable } from '~/agent/alias';
+import type { AliasTable } from '~/agent/alias';
 import { AgentError } from '~/core';
-import type { AgentAdapter, AgentTurn, Json, Message, ToolCall, ToolDefinition } from '~/core';
-
-const SAFE_NAME = /^[a-zA-Z0-9_-]{1,64}$/;
+import type { AgentAdapter, AgentTurn, Json, Message, ToolCall } from '~/core';
 
 export function openAICompatible(options: { endpoint: string }): AgentAdapter {
+  const aliases = createAliasTable();
   return {
     async generate(input): Promise<AgentTurn> {
-      const names = new Map<string, string>();
-      for (const tool of input.tools) {
-        names.set(toProviderName(tool), tool.id);
-      }
+      const names = new Map(input.tools.map((tool) => [aliases.aliasFor(tool), tool.id]));
       let response: Response;
       try {
         response = await fetch(options.endpoint, {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({
-            messages: input.messages.map((message) => toProviderMessage(message, input.tools)),
+            messages: input.messages.map((message) => toProviderMessage(message, aliases)),
             tools: input.tools.map((tool) => ({
               type: 'function',
               function: {
-                name: toProviderName(tool),
-                description: tool.description,
+                name: aliases.aliasFor(tool),
+                description:
+                  tool.title === undefined
+                    ? tool.description
+                    : `${tool.title}. ${tool.description}`,
                 parameters: tool.inputSchema,
               },
             })),
@@ -50,21 +51,7 @@ export function openAICompatible(options: { endpoint: string }): AgentAdapter {
   };
 }
 
-function toProviderName(tool: ToolDefinition): string {
-  return SAFE_NAME.test(tool.name) ? tool.name : encodeToolId(tool.id);
-}
-
-function encodeToolId(id: string): string {
-  const bytes = new TextEncoder().encode(id);
-  let binary = '';
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-  return `t_${btoa(binary).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '')}`;
-}
-
-function toProviderMessage(
-  message: Message,
-  tools: readonly ToolDefinition[],
-): Record<string, unknown> {
+function toProviderMessage(message: Message, aliases: AliasTable): Record<string, unknown> {
   if (message.role === 'tool') {
     return { role: 'tool', content: message.content, tool_call_id: message.callId };
   }
@@ -75,7 +62,7 @@ function toProviderMessage(
         id: call.id,
         type: 'function',
         function: {
-          name: providerNameFor(call.toolId, tools),
+          name: aliases.aliasOf(call.toolId),
           arguments: JSON.stringify(call.arguments),
         },
       }));
@@ -83,11 +70,6 @@ function toProviderMessage(
     return payload;
   }
   return { role: message.role, content: message.content };
-}
-
-function providerNameFor(toolId: string, tools: readonly ToolDefinition[]): string {
-  const tool = tools.find((entry) => entry.id === toolId);
-  return tool === undefined ? encodeToolId(toolId) : toProviderName(tool);
 }
 
 function parseTurn(payload: unknown, names: Map<string, string>): AgentTurn {

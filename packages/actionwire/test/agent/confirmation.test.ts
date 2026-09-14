@@ -77,3 +77,26 @@ it('requires a fresh request when the tool revision changes', async () => {
   expect(execute).toHaveBeenCalledTimes(0);
   assistant.dispose();
 });
+
+it('uses the tool title and Confirm label for consequential tools', async () => {
+  const removeWithTitle: ToolDefinition = {
+    ...remove,
+    title: 'Remove project permanently',
+  };
+  const execute = vi.fn().mockResolvedValue({ callId: 'c1', ok: true, text: 'Removed' });
+  const generate = vi.fn().mockResolvedValueOnce({
+    text: '',
+    toolCalls: [{ id: 'c1', toolId: 'delete', arguments: { name: 'Phoenix' } }],
+  });
+  const assistant = createAgentBridge({
+    source: source(execute, async () => ({ revision: 1, tools: [removeWithTitle] })),
+    model: { generate },
+  });
+  const sending = assistant.send('Remove Phoenix.');
+  await vi.waitFor(() => expect(assistant.getState().confirmation?.id).toBe('c1'));
+  expect(assistant.getState().confirmation?.title).toBe('Remove project permanently');
+  expect(assistant.getState().confirmation?.confirmLabel).toBe('Confirm');
+  assistant.confirm('c1', false);
+  await sending;
+  assistant.dispose();
+});

@@ -15,13 +15,11 @@ export function buildConfirmation(
   call: ToolCall,
   revision: number,
 ): Confirmation {
-  const target = call.arguments['name'];
-  const deleting = tool.name.toLowerCase().includes('delete');
   return {
     id: call.id,
     call,
     revision,
-    title: typeof target === 'string' ? `${tool.name} ${target}` : tool.name,
-    confirmLabel: deleting ? 'Delete' : 'Confirm',
+    title: tool.title ?? tool.name,
+    confirmLabel: 'Confirm',
   };
 }

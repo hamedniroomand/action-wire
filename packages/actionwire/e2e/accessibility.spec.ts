@@ -31,7 +31,7 @@ test('keeps the bar inside a 320px viewport', async ({ page }) => {
   expect(metrics.barBottom).toBeLessThanOrEqual(metrics.viewportHeight + 1);
 });
 
-test('runs the native delete only after the Delete click', async ({ page }) => {
+test('runs the native delete only after the Confirm click', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Open assistant' }).click();
   await page.locator('action-wire').evaluate((node) => {
@@ -46,13 +46,13 @@ test('runs the native delete only after the Delete click', async ({ page }) => {
     .poll(async () =>
       page.locator('action-wire').evaluate((node) => {
         const buttons = [...(node.shadowRoot?.querySelectorAll('button') ?? [])];
-        return buttons.some((button) => button.textContent === 'Delete');
+        return buttons.some((button) => button.textContent === 'Confirm');
       }),
     )
     .toBe(true);
   const before = await page.evaluate(() => Reflect.get(globalThis, '__executed'));
   expect(before).toEqual([]);
-  await page.getByRole('button', { name: 'Delete' }).click();
+  await page.getByRole('button', { name: 'Confirm' }).click();
   await expect
     .poll(async () => page.evaluate(() => Reflect.get(globalThis, '__executed')))
     .toEqual(['c1']);
