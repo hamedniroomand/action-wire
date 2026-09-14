@@ -1,13 +1,17 @@
-/**
- * Action Wire brand skin for the VitePress default theme.
- *
- * The palette is sampled from `assets/logo.png`: a cyan-to-violet gradient
- * through the product blue, on the near-black navy the mark sits on. The blue
- * matches `--aw-color-accent` in the widget, so the docs and the widget do not
- * drift apart.
- */
-
 :root {
+  --vp-font-family-base: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --vp-layout-max-width: 1440px;
+  --vp-c-bg: #ffffff;
+  --vp-c-bg-alt: #f5f7fc;
+  --vp-c-bg-soft: #f0f4fb;
+  --vp-c-bg-elv: #ffffff;
+  --vp-c-text-1: #17213b;
+  --vp-c-text-2: #4e5b75;
+  --vp-c-text-3: #64718a;
+  --vp-c-divider: #e0e6f0;
+  --vp-c-border: #cbd5e5;
+  --aw-radius: 10px;
+
   --aw-cyan: #48e1fd;
   --aw-blue: #2566f0;
   --aw-violet: #8d71fd;
@@ -28,9 +32,9 @@
   --vp-c-tip-3: var(--vp-c-brand-3);
   --vp-c-tip-soft: var(--vp-c-brand-soft);
 
-  --vp-home-hero-name-color: transparent;
-  --vp-home-hero-name-background: var(--aw-gradient);
-  --vp-home-hero-image-background-image: var(--aw-gradient);
+  --vp-home-hero-name-color: var(--vp-c-text-1);
+  --vp-home-hero-name-background: none;
+  --vp-home-hero-image-background-image: none;
   --vp-home-hero-image-filter: blur(52px);
 
   --vp-button-brand-border: transparent;
@@ -45,6 +49,9 @@
   --vp-c-brand-3: #2566f0;
   --vp-c-brand-soft: rgb(90 140 255 / 16%);
 
+  --vp-c-text-1: #eef3ff;
+  --vp-c-text-2: #b2bed6;
+  --vp-c-text-3: #8d9cb8;
   --vp-c-bg: #070b1a;
   --vp-c-bg-alt: #04060f;
   --vp-c-bg-elv: #0c1226;
@@ -68,16 +75,78 @@
 }
 
 .VPButton.brand {
-  background: var(--aw-gradient);
-  background-size: 160% 100%;
-  transition:
-    background-position 220ms ease,
-    box-shadow 220ms ease;
+  color: #fff;
 }
 
-.VPButton.brand:hover {
-  background-position: 100% 0;
-  box-shadow: 0 6px 20px rgb(37 102 240 / 35%);
+.VPHero .VPButton.medium {
+  border-radius: 8px;
+}
+
+.VPNavBarTitle .title {
+  font-weight: 700;
+  letter-spacing: -0.035em;
+}
+
+.VPHero .name,
+.VPHero .text {
+  letter-spacing: -0.045em;
+}
+
+.VPHero .tagline {
+  max-width: 540px;
+  font-size: 19px;
+  line-height: 1.65;
+}
+
+.VPHero .image-src {
+  width: 280px;
+  height: 280px;
+}
+
+.vp-doc h1 {
+  letter-spacing: -0.035em;
+  line-height: 1.2;
+}
+
+.vp-doc h2 {
+  letter-spacing: -0.025em;
+}
+
+.vp-doc p,
+.vp-doc li {
+  line-height: 1.8;
+}
+
+.vp-doc h1 + blockquote {
+  margin: 20px 0 32px;
+  padding: 0;
+  border: 0;
+  color: var(--vp-c-text-2);
+  font-size: 18px;
+}
+
+.vp-doc div[class*='language-'],
+.vp-doc .vp-code-group {
+  border-radius: var(--aw-radius);
+}
+
+.VPSidebarItem.level-1 > .item {
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.VPSidebarItem.level-1.is-active > .item {
+  background: var(--vp-c-brand-soft);
+}
+
+.VPSidebarItem.level-0 > .item > .text {
+  font-size: 12px;
+  color: var(--vp-c-text-2);
+}
+
+:where(a, button, input):focus-visible {
+  outline: 2px solid var(--vp-c-brand-1);
+  outline-offset: 4px;
 }
 
 .VPFeature .icon {
@@ -181,14 +250,13 @@
   display: block;
   padding: 20px;
   border: 1px solid var(--vp-c-divider);
-  border-radius: 14px;
+  border-radius: var(--aw-radius);
   background: var(--vp-c-bg-soft);
   color: inherit;
   text-decoration: none;
   transition:
     border-color 200ms ease,
-    background 200ms ease,
-    transform 200ms ease;
+    background 200ms ease;
 }
 
 /* These are surfaces, not prose links. Keep the doc link styling off them. */
@@ -203,7 +271,7 @@
 
 .aw-card-link:hover {
   border-color: var(--vp-c-brand-2);
-  transform: translateY(-2px);
+  background: var(--vp-c-brand-soft);
 }
 
 .aw-card-glyph {
@@ -320,7 +388,7 @@
 .aw-tabs {
   margin: 24px 0;
   border: 1px solid var(--vp-c-divider);
-  border-radius: 12px;
+  border-radius: var(--aw-radius);
   background: var(--vp-c-bg-soft);
 }
 
@@ -388,7 +456,7 @@
   margin: 28px 0;
   padding: 14px 18px;
   border: 1px solid var(--vp-c-divider);
-  border-radius: 12px;
+  border-radius: var(--aw-radius);
   background: var(--vp-c-bg-soft);
   text-decoration: none;
   transition: border-color 200ms ease;
@@ -400,10 +468,8 @@
 
 .aw-read-more-label {
   color: var(--vp-c-text-3);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
 }
 
 .aw-read-more-title {
@@ -438,7 +504,7 @@
   margin: 28px 0;
   padding: 24px 20px;
   border: 1px solid var(--vp-c-divider);
-  border-radius: 12px;
+  border-radius: var(--aw-radius);
   background: var(--vp-c-bg-soft);
   overflow-x: auto;
 }
@@ -446,4 +512,25 @@
 .aw-mermaid svg {
   max-width: 100%;
   height: auto;
+}
+
+@media (width <= 640px) {
+  .VPHero .tagline {
+    font-size: 17px;
+  }
+
+  .VPHero .image-src {
+    width: 180px;
+    height: 180px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition: none !important;
+    animation: none !important;
+  }
 }

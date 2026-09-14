@@ -60,4 +60,4 @@ The console prints the tool names the page registered. An empty array means the
 page registered nothing yet, or the tools belong to a different window. A thrown
 `UNSUPPORTED_WEBMCP` error means the browser does not expose the API.
 
-<ReadMore to="/guide/browser-setup" title="Browser setup" />
+<ReadMore to="/guide/quickstart" title="Quickstart" />

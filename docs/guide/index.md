@@ -85,4 +85,4 @@ operate. Your API key stays on that server and never reaches browser code. See
 [Model endpoint](/guide/model-endpoint).
 :::
 
-<ReadMore to="/guide/installation" title="Installation" />
+<ReadMore to="/guide/browser-setup" title="Browser setup" />

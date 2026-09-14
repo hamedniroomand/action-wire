@@ -130,3 +130,5 @@ This project tested none of those. It tested the command-line flag.
 Chrome 155 changes the argument format for tool execution. The adapter reads the
 format from each discovered tool and sends the matching one, so both the old and
 the new format work with no change on your side.
+
+<ReadMore to="/guide/installation" title="Installation" />

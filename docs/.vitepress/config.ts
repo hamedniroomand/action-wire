@@ -70,38 +70,41 @@ export default defineConfig({
 
     nav: [
       { text: 'Guide', link: '/guide/', activeMatch: '/guide/' },
-      { text: 'Reference', link: '/reference/', activeMatch: '/reference/' },
+      { text: 'API reference', link: '/reference/', activeMatch: '/reference/' },
       { text: 'Project', link: '/project/', activeMatch: '/project/' },
     ],
 
     sidebar: {
       '/guide/': [
         {
-          text: 'Guide',
+          text: 'Get started',
           items: [
             link('compass', 'Introduction', '/guide/'),
-            link('package', 'Installation', '/guide/installation'),
             link('chrome', 'Browser setup', '/guide/browser-setup'),
+            link('package', 'Installation', '/guide/installation'),
             link('rocket', 'Quickstart', '/guide/quickstart'),
           ],
         },
         {
-          text: 'Build',
+          text: 'Build your integration',
           items: [
             link('server', 'Model endpoint', '/guide/model-endpoint'),
-            link('shield-check', 'Confirmations', '/guide/confirmations'),
-            link('unplug', 'Without native WebMCP', '/guide/without-webmcp'),
             link('boxes', 'Frameworks', '/guide/frameworks'),
             link('palette', 'Styling', '/guide/styling'),
-            link('life-buoy', 'Troubleshooting', '/guide/troubleshooting'),
+            link('shield-check', 'Confirmations', '/guide/confirmations'),
+            link('unplug', 'Without native WebMCP', '/guide/without-webmcp'),
           ],
+        },
+        {
+          text: 'Help',
+          items: [link('life-buoy', 'Troubleshooting', '/guide/troubleshooting')],
         },
       ],
       '/reference/': [
         {
-          text: 'Reference',
+          text: 'API reference',
           items: [
-            link('braces', 'Package', '/reference/'),
+            link('braces', 'Package exports', '/reference/'),
             link('message-square', 'Widget', '/reference/widget'),
             link('terminal', 'Headless bridge', '/reference/headless'),
             link('plug', 'ToolSource', '/reference/tool-source'),

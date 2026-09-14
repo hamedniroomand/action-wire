@@ -3,7 +3,7 @@ layout: home
 
 hero:
   name: Action Wire
-  text: One set of tools. Two ways to use them.
+  text: Your app’s actions. One connected assistant.
   tagline: >-
     Your application registers its actions once with WebMCP. People click them.
     The assistant calls the same handlers, with the same permissions, and asks
@@ -13,14 +13,11 @@ hero:
     alt: Action Wire
   actions:
     - theme: brand
-      text: Quickstart
-      link: /guide/quickstart
+      text: Get started
+      link: /guide/browser-setup
     - theme: alt
-      text: What Action Wire is
+      text: Read the guide
       link: /guide/
-    - theme: alt
-      text: GitHub
-      link: https://github.com/hamedniroomand/action-wire
 ---
 
 ```ts [app.ts]
