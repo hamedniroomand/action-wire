@@ -67,6 +67,12 @@ export function createAgentBridge(options: BridgeOptions): Assistant {
     let snapshot = await options.source.discover(signal);
     for (let round = 0; round < maxRounds; round += 1) {
       if (signal.aborted) throw abortError(signal);
+      // A tool call can register or remove tools. Look again before the next model round.
+      if (round > 0) {
+        toolsDirty = false;
+        snapshot = await options.source.discover(signal);
+        if (signal.aborted) throw abortError(signal);
+      }
       const result = await options.model.generate({
         messages: session.getState().messages,
         tools: snapshot.tools,
