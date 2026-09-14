@@ -9,7 +9,8 @@ export type Route =
   | { name: 'list' }
   | { name: 'details'; id: string }
   | { name: 'billing' }
-  | { name: 'settings' };
+  | { name: 'settings' }
+  | { name: 'reports'; projectId?: string };
 
 export type Projects = {
   list(): Project[];
@@ -22,6 +23,7 @@ export type Projects = {
   openBilling(): void;
   openSettings(): void;
   openList(): void;
+  openReports(projectId?: string): void;
   route(): Route;
   subscribe(listener: () => void): () => void;
 };
@@ -114,6 +116,11 @@ export function createProjects(now: () => number = Date.now): Projects {
     },
     openList() {
       current = { name: 'list' };
+      notify();
+    },
+    openReports(projectId) {
+      if (projectId !== undefined) required(projectId);
+      current = projectId === undefined ? { name: 'reports' } : { name: 'reports', projectId };
       notify();
     },
     route() {

@@ -3,6 +3,7 @@
 import { afterEach, expect, it } from 'vitest';
 
 import { createProjects } from '../src/projects';
+import { createReports } from '../src/reports';
 import { registerDashboardTools } from '../src/tools';
 
 type NativeTool = {
@@ -40,7 +41,8 @@ afterEach(() => {
 it('runs tool execution through the same project store as the UI', async () => {
   const registered = installNative();
   const projects = createProjects();
-  await registerDashboardTools(projects);
+  const reports = createReports();
+  await registerDashboardTools(projects, reports);
   const list = registered.get('listProjects');
   if (list === undefined) throw new Error('listProjects is missing.');
   const listed = await list.execute({});
@@ -57,7 +59,8 @@ it('runs tool execution through the same project store as the UI', async () => {
 it('marks delete as consequential and list as read-only', async () => {
   const registered = installNative();
   const projects = createProjects();
-  await registerDashboardTools(projects);
+  const reports = createReports();
+  await registerDashboardTools(projects, reports);
   projects.openProject('phoenix');
   const list = registered.get('listProjects');
   const remove = registered.get('deleteProject');
@@ -69,7 +72,8 @@ it('marks delete as consequential and list as read-only', async () => {
 it('changes discovered tools when the route changes', async () => {
   const registered = installNative();
   const projects = createProjects();
-  await registerDashboardTools(projects);
+  const reports = createReports();
+  await registerDashboardTools(projects, reports);
   expect([...registered.keys()]).toEqual(
     expect.arrayContaining(['listProjects', 'openProject', 'createProject', 'openBilling']),
   );
@@ -90,8 +94,9 @@ it('changes discovered tools when the route changes', async () => {
 it('returns project IDs that later tools can use after names change', async () => {
   const registered = installNative();
   const projects = createProjects();
+  const reports = createReports();
   projects.renameProject('phoenix', 'Aurora');
-  const stop = await registerDashboardTools(projects);
+  const stop = await registerDashboardTools(projects, reports);
   try {
     const list = registered.get('listProjects');
     const open = registered.get('openProject');
@@ -105,4 +110,99 @@ it('returns project IDs that later tools can use after names change', async () =
   } finally {
     stop();
   }
+});
+
+const validReport = {
+  chartId: 'weekly-revenue',
+  chartVersion: 'v1',
+  title: 'Weekly summary',
+  audience: 'Product team',
+  week: 12,
+};
+
+it('registers report tools only on the reports route', async () => {
+  const registered = installNative();
+  const projects = createProjects();
+  const reports = createReports();
+  await registerDashboardTools(projects, reports);
+  expect(registered.has('listCharts')).toBe(false);
+
+  projects.openReports();
+  expect(registered.has('listCharts')).toBe(true);
+  expect(registered.has('previewReport')).toBe(true);
+  expect(registered.has('createReport')).toBe(true);
+  expect(registered.has('openReport')).toBe(true);
+  expect(registered.has('deleteProject')).toBe(false);
+  expect(registered.has('listProjects')).toBe(true);
+});
+
+it('keeps report tools registered when chart selection changes', async () => {
+  const registered = installNative();
+  const projects = createProjects();
+  const reports = createReports();
+  await registerDashboardTools(projects, reports);
+  projects.openReports();
+  const before = [...registered.keys()].toSorted();
+  reports.select('active-users');
+  reports.create(validReport);
+  expect([...registered.keys()].toSorted()).toEqual(before);
+});
+
+it('preview does not create reports and create returns a stable id', async () => {
+  const registered = installNative();
+  const projects = createProjects();
+  const reports = createReports();
+  await registerDashboardTools(projects, reports);
+  projects.openReports();
+  const preview = registered.get('previewReport');
+  const create = registered.get('createReport');
+  if (preview === undefined || create === undefined) throw new Error('Missing report tools');
+
+  await preview.execute(validReport);
+  expect(reports.list()).toHaveLength(0);
+
+  const result = await create.execute(validReport);
+  expect(result.text).toContain('report-1');
+  expect(reports.get('report-1').title).toBe('Weekly summary');
+});
+
+it('rejects invalid report input in native handlers without mutation', async () => {
+  const registered = installNative();
+  const projects = createProjects();
+  const reports = createReports();
+  await registerDashboardTools(projects, reports);
+  projects.openReports();
+  const preview = registered.get('previewReport');
+  const create = registered.get('createReport');
+  if (preview === undefined || create === undefined) throw new Error('Missing report tools');
+
+  await expect(preview.execute({ ...validReport, chartId: 'missing' })).rejects.toThrow(/chart/i);
+  await expect(preview.execute({ ...validReport, chartVersion: 'stale' })).rejects.toThrow(
+    /version|stale/i,
+  );
+  await expect(preview.execute({ ...validReport, title: '   ' })).rejects.toThrow(/title/i);
+  await expect(preview.execute({ ...validReport, week: 0 })).rejects.toThrow(/week/i);
+  await expect(preview.execute({ ...validReport, extra: true })).rejects.toThrow(/not valid/i);
+
+  await expect(create.execute({ ...validReport, chartVersion: 'stale' })).rejects.toThrow(
+    /version|stale/i,
+  );
+  expect(reports.list()).toHaveLength(0);
+});
+
+it('marks report preview and open as read-only and create as consequential', async () => {
+  const registered = installNative();
+  const projects = createProjects();
+  const reports = createReports();
+  await registerDashboardTools(projects, reports);
+  projects.openReports();
+  const preview = registered.get('previewReport');
+  const create = registered.get('createReport');
+  const open = registered.get('openReport');
+  if (preview === undefined || create === undefined || open === undefined) {
+    throw new Error('Missing report tools');
+  }
+  expect(preview.annotations).toEqual({ readOnlyHint: true, consequentialHint: false });
+  expect(open.annotations).toEqual({ readOnlyHint: true, consequentialHint: false });
+  expect(create.annotations).toEqual({ readOnlyHint: false, consequentialHint: true });
 });
