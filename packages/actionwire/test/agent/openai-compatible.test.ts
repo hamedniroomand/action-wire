@@ -122,6 +122,74 @@ it('keeps multi-tool response IDs and round-trips tool result messages', async (
   });
 });
 
+it('accepts Qwen-style tool calls with reasoning metadata and empty arguments', async () => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn().mockResolvedValue(
+      jsonResponse(200, {
+        choices: [
+          {
+            index: 0,
+            message: {
+              role: 'assistant',
+              reasoning_content: 'Plan: list projects first.',
+              content: '',
+              tool_calls: [
+                {
+                  id: 'call_d0880eded2584e7692dad31a',
+                  type: 'function',
+                  index: 0,
+                  function: { name: 'listProjects', arguments: '{}' },
+                },
+              ],
+            },
+            finish_reason: 'tool_calls',
+          },
+        ],
+        model: 'qwen3.8-flash-free',
+      }),
+    ),
+  );
+  const model = openAICompatible({ endpoint: '/api/assistant' });
+  const turn = await model.generate({
+    messages: [{ role: 'user', content: 'Open project nova.' }],
+    tools,
+  });
+  expect(turn.toolCalls).toEqual([
+    { id: 'call_d0880eded2584e7692dad31a', toolId: 'list', arguments: {} },
+  ]);
+});
+
+it('accepts missing tool arguments as an empty object', async () => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn().mockResolvedValue(
+      jsonResponse(200, {
+        choices: [
+          {
+            message: {
+              content: '',
+              tool_calls: [
+                {
+                  id: 'c1',
+                  type: 'function',
+                  function: { name: 'listProjects' },
+                },
+              ],
+            },
+          },
+        ],
+      }),
+    ),
+  );
+  const model = openAICompatible({ endpoint: '/api/assistant' });
+  const turn = await model.generate({
+    messages: [{ role: 'user', content: 'List' }],
+    tools,
+  });
+  expect(turn.toolCalls[0]?.arguments).toEqual({});
+});
+
 it.each([
   ['invalid JSON', jsonResponse(200, '{'), 'MODEL_ERROR'],
   [

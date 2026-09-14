@@ -77,17 +77,24 @@ function parseTurn(payload: unknown, names: Map<string, string>): AgentTurn {
     throw new AgentError('MODEL_ERROR', 'The model response is not valid JSON.');
   }
   const choices = Reflect.get(payload, 'choices');
-  const choice = Array.isArray(choices) ? choices[0] : undefined;
+  if (!Array.isArray(choices) || choices.length === 0) {
+    const error = Reflect.get(payload, 'error');
+    if (typeof error === 'object' && error !== null) {
+      const message = Reflect.get(error, 'message');
+      if (typeof message === 'string' && message.trim() !== '') {
+        throw new AgentError('MODEL_ERROR', message);
+      }
+    }
+    throw new AgentError('MODEL_ERROR', 'The model response is not valid JSON.');
+  }
+  const choice = choices[0];
   const message =
     typeof choice === 'object' && choice !== null ? Reflect.get(choice, 'message') : undefined;
   if (typeof message !== 'object' || message === null) {
     throw new AgentError('MODEL_ERROR', 'The model response is not valid JSON.');
   }
   const content = Reflect.get(message, 'content');
-  const text = content === null || content === undefined ? '' : content;
-  if (typeof text !== 'string') {
-    throw new AgentError('MODEL_ERROR', 'The model response is not valid JSON.');
-  }
+  const text = normalizeAssistantContent(content);
   const rawCalls = Reflect.get(message, 'tool_calls');
   if (rawCalls === undefined) return { text, toolCalls: [] };
   if (!Array.isArray(rawCalls)) {
@@ -117,7 +124,27 @@ function parseCall(entry: unknown, names: Map<string, string>): ToolCall {
   return { id, toolId, arguments: parseArguments(rawArguments) };
 }
 
+function normalizeAssistantContent(content: unknown): string {
+  if (content === null || content === undefined) return '';
+  if (typeof content === 'string') return content;
+  if (Array.isArray(content)) {
+    const parts: string[] = [];
+    for (const entry of content) {
+      if (typeof entry !== 'object' || entry === null) continue;
+      const type = Reflect.get(entry, 'type');
+      if (type !== 'text') continue;
+      const text = Reflect.get(entry, 'text');
+      if (typeof text === 'string') parts.push(text);
+    }
+    return parts.join('\n');
+  }
+  throw new AgentError('MODEL_ERROR', 'The model response is not valid JSON.');
+}
+
 function parseArguments(raw: unknown): Record<string, Json> {
+  if (raw === undefined || raw === null || raw === '') {
+    return {};
+  }
   let value: unknown = raw;
   if (typeof raw === 'string') {
     try {
