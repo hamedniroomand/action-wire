@@ -1,4 +1,4 @@
-import { createAssistant, openAICompatible } from 'action-wire';
+import { createAssistant, openAICompatible } from 'actionwire';
 import { useEffect, useRef, useState } from 'react';
 
 export function App() {

@@ -1,5 +1,5 @@
 {
-  "name": "action-wire",
+  "name": "actionwire",
   "version": "0.1.0",
   "description": "A text assistant widget that uses the WebMCP tools a page already registered.",
   "keywords": [
@@ -17,7 +17,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/hamedniroomand/action-wire.git",
-    "directory": "packages/action-wire"
+    "directory": "packages/actionwire"
   },
   "files": [
     "dist",

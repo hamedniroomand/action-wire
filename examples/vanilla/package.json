@@ -6,6 +6,6 @@
   "license": "MIT",
   "type": "module",
   "dependencies": {
-    "action-wire": "workspace:*"
+    "actionwire": "workspace:*"
   }
 }

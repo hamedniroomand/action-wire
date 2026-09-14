@@ -14,7 +14,7 @@ export default defineConfig({
   plugins: [svelte()],
   resolve: {
     alias: {
-      'action-wire': path.join(packages, 'action-wire/dist/index.js'),
+      actionwire: path.join(packages, 'actionwire/dist/index.js'),
     },
   },
   server: {

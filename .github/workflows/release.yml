@@ -22,7 +22,7 @@ jobs:
       - name: Check the tag matches the package version
         run: |
           tag="${GITHUB_REF_NAME#v}"
-          version="$(node -p "require('./packages/action-wire/package.json').version")"
+          version="$(node -p "require('./packages/actionwire/package.json').version")"
           if [ "$tag" != "$version" ]; then
             echo "Tag $GITHUB_REF_NAME does not match package version $version." >&2
             exit 1
@@ -32,4 +32,4 @@ jobs:
       - run: pnpm test
       - run: npm install -g npm@latest
       - run: npm publish --provenance --access public
-        working-directory: packages/action-wire
+        working-directory: packages/actionwire

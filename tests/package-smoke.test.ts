@@ -7,12 +7,13 @@ import { fileURLToPath } from 'node:url';
 import { expect, it } from 'vitest';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
-const PACKAGE = 'action-wire';
+const PACKAGE = 'actionwire';
+const PACKAGE_DIR = 'actionwire';
 
 it('packs installable ESM packages without workspace aliases', () => {
-  execFileSync('pnpm', ['--filter', PACKAGE, 'build'], { cwd: root });
+  execFileSync('pnpm', ['--filter', `./packages/${PACKAGE_DIR}`, 'build'], { cwd: root });
 
-  const packageDir = path.join(root, 'packages', PACKAGE);
+  const packageDir = path.join(root, 'packages', PACKAGE_DIR);
   for (const file of jsFiles(path.join(packageDir, 'dist'))) {
     expect(readFileSync(file, 'utf8'), file).not.toMatch(/from ['"]~\//);
   }
@@ -35,7 +36,7 @@ it('packs installable ESM packages without workspace aliases', () => {
     execFileSync('pnpm', ['pack', '--pack-destination', packs], { cwd: packageDir });
     const tarballs = readdirSync(packs).filter((name) => name.endsWith('.tgz'));
     expect(tarballs).toHaveLength(1);
-    const widgetTar = tarballs.find((name) => /^action-wire-\d/.test(name));
+    const widgetTar = tarballs.find((name) => /^actionwire-\d/.test(name));
     expect(widgetTar).toBeDefined();
     if (widgetTar !== undefined) {
       const bytes = statSync(path.join(packs, widgetTar)).size;
@@ -55,7 +56,7 @@ it('packs installable ESM packages without workspace aliases', () => {
       },
     );
 
-    const installed = readPkg(path.join(consumer, 'node_modules/action-wire/package.json'));
+    const installed = readPkg(path.join(consumer, 'node_modules/actionwire/package.json'));
     expect(JSON.stringify(installed)).not.toContain('workspace:');
     expect(Object.keys(asRecord(installed['dependencies']))).toEqual(['@cfworker/json-schema']);
 
@@ -64,7 +65,7 @@ it('packs installable ESM packages without workspace aliases', () => {
       [
         '--input-type=module',
         '-e',
-        "import { createAgentBridge, createAssistant, createWebMCPSource, openAICompatible } from 'action-wire'; console.log([typeof createAgentBridge, typeof createAssistant, typeof createWebMCPSource, typeof openAICompatible].join(' '));",
+        "import { createAgentBridge, createAssistant, createWebMCPSource, openAICompatible } from 'actionwire'; console.log([typeof createAgentBridge, typeof createAssistant, typeof createWebMCPSource, typeof openAICompatible].join(' '));",
       ],
       { cwd: consumer, encoding: 'utf8' },
     );
@@ -72,7 +73,7 @@ it('packs installable ESM packages without workspace aliases', () => {
 
     writeFileSync(
       path.join(consumer, 'check.ts'),
-      "import { AgentError, createAssistant, createWebMCPSource, openAICompatible } from 'action-wire';\nimport type { ToolSource } from 'action-wire';\nexport const error = new AgentError('BUSY', 'busy');\nexport const source: () => ToolSource = createWebMCPSource;\nexport const model = openAICompatible;\nexport const assistant = createAssistant;\n",
+      "import { AgentError, createAssistant, createWebMCPSource, openAICompatible } from 'actionwire';\nimport type { ToolSource } from 'actionwire';\nexport const error = new AgentError('BUSY', 'busy');\nexport const source: () => ToolSource = createWebMCPSource;\nexport const model = openAICompatible;\nexport const assistant = createAssistant;\n",
     );
     writeFileSync(
       path.join(consumer, 'tsconfig.json'),

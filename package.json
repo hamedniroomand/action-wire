@@ -1,8 +1,8 @@
 {
-  "name": "actionwire",
+  "name": "@hamedniroomand/action-wire",
   "version": "1.0.0",
-  "private": false,
-  "description": "Action Wire monorepo: the action-wire package, the playground, the framework examples, and the documentation site.",
+  "private": true,
+  "description": "Action Wire monorepo: the actionwire package, the playground, the framework examples, and the documentation site.",
   "keywords": [],
   "homepage": "https://github.com/hamedniroomand/action-wire",
   "bugs": {
@@ -21,13 +21,13 @@
     "format:check": "oxfmt --check",
     "format": "oxfmt .",
     "prepare": "husky",
-    "build": "pnpm --filter action-wire build",
+    "build": "pnpm --filter ./packages/actionwire build",
     "typecheck": "pnpm build && tsc --noEmit && tsc -p tsconfig.test.json && tsc -p playground/tsconfig.json && tsc -p playground/test/tsconfig.json && tsc -p playground/compatibility/tsconfig.json && tsc -p playground/server/tsconfig.json && tsc -p examples/react/tsconfig.json && tsc -p examples/svelte/tsconfig.json && pnpm -r --if-present typecheck",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "probe": "vite playground/compatibility --config vite.config.ts --host 127.0.0.1 --port 4173 --strictPort",
-    "widget:dev": "vite packages/action-wire/e2e --config vite.config.ts --host 127.0.0.1 --port 4174 --strictPort",
+    "widget:dev": "vite packages/actionwire/e2e --config vite.config.ts --host 127.0.0.1 --port 4174 --strictPort",
     "playground:dev": "vite --config playground/vite.config.ts",
     "playground:server": "node --env-file=playground/.env playground/server/index.ts",
     "vanilla:dev": "vite --config examples/vanilla/vite.config.ts",
@@ -35,8 +35,8 @@
     "vue:dev": "vite --config examples/vue/vite.config.ts",
     "svelte:dev": "vite --config examples/svelte/vite.config.ts",
     "test:native": "playwright test --project chromium-webmcp --project e2e-native --grep \"native\"",
-    "docs:dev": "pnpm --filter action-wire-docs dev",
-    "docs:build": "pnpm --filter action-wire-docs build"
+    "docs:dev": "pnpm --filter actionwire-docs dev",
+    "docs:build": "pnpm --filter actionwire-docs build"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.2",

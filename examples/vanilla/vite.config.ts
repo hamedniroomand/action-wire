@@ -12,7 +12,7 @@ export default defineConfig({
   publicDir: assets,
   resolve: {
     alias: {
-      'action-wire': path.join(packages, 'action-wire/dist/index.js'),
+      actionwire: path.join(packages, 'actionwire/dist/index.js'),
     },
   },
   server: {

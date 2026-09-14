@@ -8,18 +8,18 @@ import { createAssistantServer } from './server/index.ts';
 
 const root = fileURLToPath(new URL('.', import.meta.url));
 const assets = fileURLToPath(new URL('../assets', import.meta.url));
-const src = fileURLToPath(new URL('../packages/action-wire/src/', import.meta.url));
+const src = fileURLToPath(new URL('../packages/actionwire/src/', import.meta.url));
 const DEFAULT_MODEL_PORT = 8787;
 
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, root, 'ACTION_WIRE_');
-  const port = Number.parseInt(env['ACTION_WIRE_PORT'] ?? '', 10);
+  const env = loadEnv(mode, root, 'ACTIONWIRE_');
+  const port = Number.parseInt(env['ACTIONWIRE_PORT'] ?? '', 10);
   const modelPort = Number.isFinite(port) ? port : DEFAULT_MODEL_PORT;
   return {
     root,
     publicDir: assets,
     resolve: {
-      alias: { 'action-wire': path.join(src, 'index.ts') },
+      alias: { actionwire: path.join(src, 'index.ts') },
     },
     plugins: [
       {

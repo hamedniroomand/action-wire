@@ -1,4 +1,4 @@
-import { createAssistant, openAICompatible } from 'action-wire';
+import { createAssistant, openAICompatible } from 'actionwire';
 
 const registration = new AbortController();
 const assistant = createAssistant({

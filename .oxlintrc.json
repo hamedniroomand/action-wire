@@ -17,7 +17,7 @@
   },
   "overrides": [
     {
-      "files": ["packages/action-wire/src/core/**"],
+      "files": ["packages/actionwire/src/core/**"],
       "rules": {
         "no-restricted-imports": [
           "error",
@@ -28,7 +28,7 @@
       }
     },
     {
-      "files": ["packages/action-wire/src/webmcp/**"],
+      "files": ["packages/actionwire/src/webmcp/**"],
       "rules": {
         "no-restricted-imports": [
           "error",
@@ -39,7 +39,7 @@
       }
     },
     {
-      "files": ["packages/action-wire/src/agent/**"],
+      "files": ["packages/actionwire/src/agent/**"],
       "rules": {
         "no-restricted-imports": [
           "error",

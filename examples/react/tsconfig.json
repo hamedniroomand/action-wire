@@ -6,7 +6,7 @@
     "jsx": "react-jsx",
     "noEmit": true,
     "paths": {
-      "action-wire": ["../../packages/action-wire/dist/index.d.ts"]
+      "actionwire": ["../../packages/actionwire/dist/index.d.ts"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"]

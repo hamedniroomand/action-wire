@@ -23,7 +23,7 @@ If your users cannot start a browser with a flag, supply your own tool source in
 ## Install
 
 ```sh
-npm install action-wire
+npm install actionwire
 ```
 
 One package holds the widget, the headless bridge, the WebMCP source, the model adapter, and the types. Its only runtime dependency is `@cfworker/json-schema`, which validates tool input without `eval`, so the widget works under a strict Content-Security-Policy.
@@ -33,7 +33,7 @@ One package holds the widget, the headless bridge, the WebMCP source, the model 
 Register a tool on the page, then mount the widget.
 
 ```ts
-import { createAssistant, openAICompatible } from 'action-wire';
+import { createAssistant, openAICompatible } from 'actionwire';
 
 const assistant = createAssistant({
   model: openAICompatible({ endpoint: '/api/assistant' }),

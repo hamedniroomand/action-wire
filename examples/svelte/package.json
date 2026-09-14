@@ -9,7 +9,7 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "action-wire": "workspace:*",
+    "actionwire": "workspace:*",
     "svelte": "^5.57.0"
   },
   "devDependencies": {

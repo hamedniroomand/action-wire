@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 
 /**
  * Manual real-model run (do not assert model wording):
- * 1. Copy playground/.env.example to playground/.env and set ACTION_WIRE_*.
+ * 1. Copy playground/.env.example to playground/.env and set ACTIONWIRE_*.
  * 2. Start `pnpm playground:dev` and `node playground/server/index.ts`.
  * 3. Open http://127.0.0.1:4175 in Chromium with --enable-experimental-web-platform-features.
  * 4. Ask the assistant to open the latest project, rename it, then delete it.

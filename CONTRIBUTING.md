@@ -26,7 +26,7 @@ Use a conventional type and subject only (`feat:`, `fix:`, `chore:`, `test:`, `d
 
 ## Package
 
-Everything publishes as one package, `packages/action-wire`:
+Everything publishes as one package, `packages/actionwire`:
 
 ```sh
 pnpm build

@@ -22,7 +22,7 @@ export default defineConfig({
     },
     {
       name: 'widget',
-      testDir: './packages/action-wire/e2e',
+      testDir: './packages/actionwire/e2e',
       testMatch: '**/*.spec.ts',
       use: { browserName: 'chromium', baseURL: 'http://127.0.0.1:4174' },
     },

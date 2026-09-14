@@ -9,7 +9,7 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "action-wire": "workspace:*",
+    "actionwire": "workspace:*",
     "vue": "^3.5.42"
   },
   "devDependencies": {

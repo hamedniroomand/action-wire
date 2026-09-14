@@ -9,9 +9,9 @@ import { createAssistantServer } from './index';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const env = {
-  ACTION_WIRE_UPSTREAM_URL: 'https://example.test/v1/chat/completions',
-  ACTION_WIRE_MODEL: 'demo-model',
-  ACTION_WIRE_API_KEY: 'server-secret',
+  ACTIONWIRE_UPSTREAM_URL: 'https://example.test/v1/chat/completions',
+  ACTIONWIRE_MODEL: 'demo-model',
+  ACTIONWIRE_API_KEY: 'server-secret',
 };
 
 afterEach(() => {
@@ -34,9 +34,9 @@ it('returns an actionable error when credentials are missing', async () => {
   );
   expect(response.ok).toBe(false);
   const text = await response.text();
-  expect(text).toContain('ACTION_WIRE_UPSTREAM_URL');
-  expect(text).toContain('ACTION_WIRE_MODEL');
-  expect(text).toContain('ACTION_WIRE_API_KEY');
+  expect(text).toContain('ACTIONWIRE_UPSTREAM_URL');
+  expect(text).toContain('ACTIONWIRE_MODEL');
+  expect(text).toContain('ACTIONWIRE_API_KEY');
 });
 
 it('rejects a malformed or oversized body', async () => {
@@ -121,14 +121,14 @@ it('binds the demo server to loopback', async () => {
 });
 
 it('keeps provider secrets out of the browser adapter', () => {
-  const agentRoot = join(here, '../../packages/action-wire/src/agent');
+  const agentRoot = join(here, '../../packages/actionwire/src/agent');
   const files = readdirSync(agentRoot).filter((name) => name.endsWith('.ts'));
   expect(files.length).toBeGreaterThan(0);
   for (const name of files) {
     const source = readFileSync(join(agentRoot, name), 'utf8');
     expect(source).not.toMatch(/Authorization/i);
     expect(source).not.toMatch(/api[_-]?key/i);
-    expect(source).not.toMatch(/ACTION_WIRE_API_KEY/);
+    expect(source).not.toMatch(/ACTIONWIRE_API_KEY/);
     expect(source).not.toMatch(/process\.env/);
   }
 });

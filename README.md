@@ -21,7 +21,7 @@ Voice is out of scope. The assistant does not persist conversation history acros
 ## Install
 
 ```sh
-npm install action-wire
+npm install actionwire
 ```
 
 One package holds the widget, the headless bridge, the WebMCP source, the model adapter, and the types. It is ESM only. Its only runtime dependency is `@cfworker/json-schema`, which validates tool input without `eval`, so the widget works under a strict Content-Security-Policy.
@@ -31,7 +31,7 @@ One package holds the widget, the headless bridge, the WebMCP source, the model 
 See the [quickstart](docs/guide/quickstart.md).
 
 ```ts
-import { createAssistant, openAICompatible } from 'action-wire';
+import { createAssistant, openAICompatible } from 'actionwire';
 
 const assistant = createAssistant({
   model: openAICompatible({ endpoint: '/api/assistant' }),
@@ -45,7 +45,7 @@ Register tools on the page with native WebMCP before discovery. Keep model crede
 
 `createAssistant` mounts the widget. `createAgentBridge` is the same runtime with no interface. `createWebMCPSource` reads the tools on the page. `openAICompatible` talks to your model endpoint. `AgentError` carries every failure code. The types come from the same entry point.
 
-Inside `packages/action-wire/src` the code keeps four layers: `core`, `webmcp`, `agent`, and `widget`. They import in one direction only, and a lint rule enforces it.
+Inside `packages/actionwire/src` the code keeps four layers: `core`, `webmcp`, `agent`, and `widget`. They import in one direction only, and a lint rule enforces it.
 
 ## Examples
 
@@ -74,7 +74,7 @@ pnpm test
 The site is a VitePress project in [`docs/`](docs). Run it from the repository root:
 
 ```sh
-pnpm --filter action-wire-docs dev
+pnpm --filter actionwire-docs dev
 ```
 
 - [Introduction](docs/guide/index.md): what this is and who it helps.

@@ -67,7 +67,7 @@ test('does not add voice, React, Vue, or Svelte to browser packages', async () =
   const files = [
     {
       name: 'action-wire',
-      raw: await readFile(join(root, 'packages/action-wire/package.json'), 'utf8'),
+      raw: await readFile(join(root, 'packages/actionwire/package.json'), 'utf8'),
     },
   ];
   for (const { name, raw } of files) {

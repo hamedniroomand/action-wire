@@ -16,29 +16,29 @@ A bug report names a symptom. Fix the shared function once. Grep every caller.
 
 - Polyfill `document.modelContext` or ship a replacement registry.
 - Define application tools inside the agent, the widget, or the playground mount.
-- Add React, Vue, Svelte, voice, LiveKit, or WebRTC to `packages/action-wire`.
+- Add React, Vue, Svelte, voice, LiveKit, or WebRTC to `packages/actionwire`.
 - Import upward between layers. `core` may not import `webmcp`, `agent`, or `widget`; `webmcp` and `agent` may not import `widget` or each other.
 - Put model API keys in browser code.
-- Import package source from examples. Alias `packages/action-wire/dist`.
+- Import package source from examples. Alias `packages/actionwire/dist`.
 - Add a dependency, abstraction, or file that the task does not need.
 - Rewrite `docs/` unless the user asks. The user maintains that site.
 
 ## Layout
 
-| Path                   | Role                                                                   |
-| ---------------------- | ---------------------------------------------------------------------- |
-| `packages/action-wire` | The published package. `src` holds the four layers below.              |
-| `src/core`             | Types, registry, events, errors. No browser API.                       |
-| `src/webmcp`           | Native discovery and execution. The only browser-gated layer.          |
-| `src/agent`            | Bridge, session, confirmation, OpenAI-compatible adapter.              |
-| `src/widget`           | Web Component and shadow-root interface.                               |
-| `playground`           | Dashboard, probe, and Node model endpoint.                             |
-| `examples/*`           | Vanilla, React, Vue, Svelte hosts. Same `setStatus` or `ping` pattern. |
-| `tests`                | Cross-cutting Playwright suites and package smoke.                     |
+| Path                  | Role                                                                   |
+| --------------------- | ---------------------------------------------------------------------- |
+| `packages/actionwire` | The published package. `src` holds the four layers below.              |
+| `src/core`            | Types, registry, events, errors. No browser API.                       |
+| `src/webmcp`          | Native discovery and execution. The only browser-gated layer.          |
+| `src/agent`           | Bridge, session, confirmation, OpenAI-compatible adapter.              |
+| `src/widget`          | Web Component and shadow-root interface.                               |
+| `playground`          | Dashboard, probe, and Node model endpoint.                             |
+| `examples/*`          | Vanilla, React, Vue, Svelte hosts. Same `setStatus` or `ping` pattern. |
+| `tests`               | Cross-cutting Playwright suites and package smoke.                     |
 
 Layer order inside `src`: core, then webmcp and agent, then widget. Imports go one way only. Only `AgentBridge` executes tools. Model output is an untrusted request. The widget presents state. It holds no WebMCP or model logic.
 
-Public name: `action-wire`. Host element `action-wire`. CSS `--aw-*`. Demo env `ACTION_WIRE_*`. Repo: `https://github.com/hamedniroomand/action-wire`.
+Public name: `action-wire`. Host element `action-wire`. CSS `--aw-*`. Demo env `ACTIONWIRE_*`. Repo: `https://github.com/hamedniroomand/action-wire`.
 
 Example and playground Vite servers: probe `4173`, widget `4174`, playground `4175`, vanilla `4176`, react `4177`, vue `4178`, svelte `4179`. Native checks need Chromium with `--enable-experimental-web-platform-features`. `pnpm test:native` must fail when the API is absent. It does not skip.
 
