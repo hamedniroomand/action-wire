@@ -17,6 +17,8 @@ const ERRORS = {
   INVALID_ARGUMENTS: 'The tool input is not valid.',
   EXECUTION_FAILED: 'The tool failed.',
   CONFIRMATION_DENIED: 'The action was cancelled.',
+  INVALIDATED: 'This action is no longer valid.',
+  OUTCOME_UNKNOWN: 'The action may have changed the page.',
   ABORTED: 'The assistant was cancelled.',
   TIMEOUT: 'The assistant timed out.',
   MODEL_ERROR: 'The assistant could not complete the turn.',

@@ -35,6 +35,8 @@ it('resets state on clear and stops notifications after unsubscribe', () => {
     timeline: [],
     messages: [],
     activities: [],
+    context: [],
+    proposals: [],
     busy: false,
   });
   expect(values).toEqual([true]);

@@ -3,12 +3,17 @@ import { closeIcon } from '~/widget/icons';
 import { renderMarkdown } from '~/widget/markdown';
 
 const STATUS: Record<Activity['status'], string> = {
-  queued: 'Queued',
-  'awaiting-confirmation': 'Waiting for confirmation',
+  preparing: 'Preparing',
+  'needs-input': 'Needs input',
+  'ready-for-review': 'Ready for review',
+  approved: 'Approved',
   running: 'Running',
-  success: 'Success',
-  error: 'Error',
+  succeeded: 'Succeeded',
+  failed: 'Failed',
+  denied: 'Denied',
+  invalidated: 'Invalidated',
   cancelled: 'Cancelled',
+  'outcome-unknown': 'Outcome unknown',
 };
 const NEAR_BOTTOM_PX = 48;
 
@@ -108,7 +113,6 @@ function renderMessage(message: Message): HTMLElement {
   role.textContent = message.role === 'user' ? 'you' : 'assistant';
   const content = document.createElement('div');
   content.className = 'content';
-  // The user typed their own text. Only the model sends Markdown.
   if (message.role === 'assistant') content.append(renderMarkdown(message.content));
   else content.textContent = message.content;
   node.append(role, content);

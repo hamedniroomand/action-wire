@@ -69,7 +69,7 @@ test('discovers native page tools and runs listProjects without a WebMCP test do
     page.locator('action-wire').locator('.tool-name', { hasText: 'listProjects' }),
   ).toBeVisible();
   await expect(
-    page.locator('action-wire').locator('.tool-status', { hasText: 'Success' }),
+    page.locator('action-wire').locator('.tool-status', { hasText: 'Succeeded' }),
   ).toBeVisible();
   await expect(page.getByRole('button', { name: 'Phoenix' })).toBeVisible();
 });
@@ -164,6 +164,6 @@ test('discovers and runs native tools under a CSP that forbids eval', async ({ p
   await send(page, 'List my projects.');
   await openTranscript(page);
   await expect(
-    page.locator('action-wire').locator('.tool-status', { hasText: 'Success' }),
+    page.locator('action-wire').locator('.tool-status', { hasText: 'Succeeded' }),
   ).toBeVisible();
 });

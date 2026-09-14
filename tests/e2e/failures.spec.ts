@@ -80,7 +80,7 @@ test('drops page tools after navigation', async ({ page }) => {
   await send(page, 'List projects.');
   await openTranscript(page);
   await expect(page.locator('.tool-name', { hasText: 'list' })).toBeVisible();
-  await expect(page.locator('.tool-status', { hasText: 'Success' })).toBeVisible();
+  await expect(page.locator('.tool-status', { hasText: 'Succeeded' })).toBeVisible();
   await page.evaluate(() => {
     const navigate = Reflect.get(globalThis, '__navigate');
     if (typeof navigate !== 'function') throw new Error('missing navigate');

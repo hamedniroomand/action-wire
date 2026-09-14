@@ -1,10 +1,18 @@
 import { expect, it } from 'vitest';
 
-import type { Activity, AssistantState, Message } from '~/core';
+import type { Activity, AssistantState, Message, Proposal } from '~/core';
 import { toBarMode } from '~/widget/modes';
 
 function state(over: Partial<AssistantState> = {}): AssistantState {
-  return { timeline: [], messages: [], activities: [], busy: false, ...over };
+  return {
+    timeline: [],
+    messages: [],
+    activities: [],
+    context: [],
+    proposals: [],
+    busy: false,
+    ...over,
+  };
 }
 const open = { open: true, draft: '' };
 const user: Message = { role: 'user', content: 'Rename Alpha to Atlas' };
@@ -22,19 +30,22 @@ it('is collapsed when closed, whatever the state', () => {
   });
 });
 
-it('prefers confirm over every other state', () => {
-  const confirmation = {
+it('prefers review over every other state', () => {
+  const proposal: Proposal = {
     id: 'p1',
-    call: activity('c1', 'awaiting-confirmation').call,
-    revision: 1,
+    call: activity('c1', 'ready-for-review').call,
+    version: 1,
+    toolRevision: 1,
+    context: [],
+    targets: [],
     title: 'Delete Alpha?',
-    confirmLabel: 'Delete',
+    status: 'ready-for-review',
   };
   const mode = toBarMode(
-    state({ busy: true, confirmation, error: { code: 'TIMEOUT', message: '' } }),
+    state({ busy: true, proposals: [proposal], error: { code: 'TIMEOUT', message: '' } }),
     open,
   );
-  expect(mode).toEqual({ kind: 'confirm', confirmation });
+  expect(mode).toEqual({ kind: 'review', proposal });
 });
 
 it('shows the error with the last user text for retry', () => {
@@ -49,7 +60,7 @@ it('shows the running tool with its position in the turn', () => {
   const s = state({
     busy: true,
     messages: [user],
-    activities: [activity('c1', 'success'), activity('c2', 'running')],
+    activities: [activity('c1', 'succeeded'), activity('c2', 'running')],
     timeline: [
       { kind: 'message', index: 0 },
       { kind: 'activity', callId: 'c1' },
@@ -76,7 +87,11 @@ it('is busy when no tool is running', () => {
 it('shows a receipt after a reply and counts only this turn', () => {
   const s = state({
     messages: [user, reply, user, reply],
-    activities: [activity('c1', 'success'), activity('c2', 'success'), activity('c3', 'success')],
+    activities: [
+      activity('c1', 'succeeded'),
+      activity('c2', 'succeeded'),
+      activity('c3', 'succeeded'),
+    ],
     timeline: [
       { kind: 'message', index: 0 },
       { kind: 'activity', callId: 'c1' },

@@ -17,8 +17,15 @@ it('connects a typed tool source to a caller with a result ID', async () => {
   expect(await source.execute(call, 1)).toEqual({ callId: 'call-1', ok: true, text: 'Hello' });
 });
 
-const state: AssistantState = { messages: [], activities: [], timeline: [], busy: false };
-const status: ToolStatus = 'awaiting-confirmation';
+const state: AssistantState = {
+  messages: [],
+  activities: [],
+  timeline: [],
+  context: [],
+  proposals: [],
+  busy: false,
+};
+const status: ToolStatus = 'ready-for-review';
 // @ts-expect-error This status is not part of the protocol.
 const invalidStatus: ToolStatus = 'done';
 // @ts-expect-error Tool input must contain JSON values.

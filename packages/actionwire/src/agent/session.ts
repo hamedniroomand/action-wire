@@ -5,6 +5,8 @@ const empty: AssistantState = Object.freeze({
   timeline: Object.freeze([]),
   messages: Object.freeze([]),
   activities: Object.freeze([]),
+  context: Object.freeze([]),
+  proposals: Object.freeze([]),
   busy: false,
 });
 
@@ -43,8 +45,9 @@ function freezeState(value: AssistantState): AssistantState {
     timeline: [...value.timeline],
     messages: [...value.messages],
     activities: [...value.activities],
+    context: [...value.context],
+    proposals: [...value.proposals],
     busy: value.busy,
-    ...(value.confirmation === undefined ? {} : { confirmation: value.confirmation }),
     ...(value.error === undefined ? {} : { error: value.error }),
   });
 }

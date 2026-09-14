@@ -1,10 +1,10 @@
-import type { Activity, AssistantState, Confirmation, ErrorCode } from '~/core';
+import type { Activity, AssistantState, ErrorCode, Proposal } from '~/core';
 
 export type BarUi = { open: boolean; draft: string };
 
 export type BarMode =
   | { kind: 'collapsed' }
-  | { kind: 'confirm'; confirmation: Confirmation }
+  | { kind: 'review'; proposal: Proposal }
   | { kind: 'error'; code: ErrorCode; retry: string | undefined }
   | { kind: 'tool'; toolId: string; index: number; total: number }
   | { kind: 'busy' }
@@ -13,14 +13,17 @@ export type BarMode =
 
 const ACTIVE: ReadonlySet<Activity['status']> = new Set([
   'running',
-  'queued',
-  'awaiting-confirmation',
+  'preparing',
+  'needs-input',
+  'ready-for-review',
+  'approved',
 ]);
 
 export function toBarMode(state: AssistantState, ui: BarUi): BarMode {
   if (!ui.open) return { kind: 'collapsed' };
-  if (state.confirmation !== undefined) {
-    return { kind: 'confirm', confirmation: state.confirmation };
+  const review = state.proposals.find((proposal) => proposal.status === 'ready-for-review');
+  if (review !== undefined) {
+    return { kind: 'review', proposal: review };
   }
   if (state.error !== undefined) {
     return { kind: 'error', code: state.error.code, retry: lastUserText(state) };

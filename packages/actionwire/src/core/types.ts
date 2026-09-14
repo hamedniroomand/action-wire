@@ -26,8 +26,29 @@ export interface ToolSource {
   subscribe(listener: () => void): () => void;
   dispose(): void;
 }
+
+export type ContextItem = {
+  id: string;
+  label: string;
+  resource: string;
+  version: string;
+  kind?: string;
+};
+export type ContextSnapshot = { items: readonly ContextItem[] };
+export interface ContextSource {
+  read(): ContextSnapshot;
+  subscribe(listener: () => void): () => void;
+}
+
+export type ActionTarget = { resource: string; label: string; version: string };
+export type ReviewOptions = {
+  previewTools?: Readonly<Record<string, string>>;
+  targets?: (call: ToolCall, signal: AbortSignal) => Promise<readonly ActionTarget[]>;
+  independent?: (calls: readonly ToolCall[]) => boolean;
+};
+
 export type Message =
-  | { role: 'user' | 'system'; content: string }
+  | { role: 'user' | 'system'; content: string; context?: readonly ContextItem[] }
   | { role: 'assistant'; content: string; toolCalls?: ToolCall[] }
   | { role: 'tool'; content: string; callId: string };
 export type AgentTurn = { text: string; toolCalls: ToolCall[] };
@@ -38,20 +59,43 @@ export interface AgentAdapter {
     signal?: AbortSignal;
   }): Promise<AgentTurn>;
 }
+
 export type ToolStatus =
-  | 'queued'
-  | 'awaiting-confirmation'
+  | 'preparing'
+  | 'needs-input'
+  | 'ready-for-review'
+  | 'approved'
   | 'running'
-  | 'success'
-  | 'error'
-  | 'cancelled';
-export type Activity = { call: ToolCall; status: ToolStatus; result?: ToolResult };
-export type Confirmation = {
+  | 'succeeded'
+  | 'failed'
+  | 'denied'
+  | 'invalidated'
+  | 'cancelled'
+  | 'outcome-unknown';
+
+export type ProposalPreview =
+  | { kind: 'application'; text: string; data?: Json }
+  | { kind: 'unavailable'; reason: string }
+  | { kind: 'failed'; reason: string };
+
+export type Proposal = {
   id: string;
   call: ToolCall;
-  revision: number;
+  version: number;
+  toolRevision: number;
+  context: readonly ContextItem[];
+  targets: readonly ActionTarget[];
   title: string;
-  confirmLabel: string;
+  status: ToolStatus;
+  preview?: ProposalPreview;
+  reason?: string;
+};
+
+export type Activity = {
+  call: ToolCall;
+  status: ToolStatus;
+  result?: ToolResult;
+  dispatched?: boolean;
 };
 export type TimelineItem =
   | { kind: 'message'; index: number }
@@ -60,14 +104,17 @@ export type AssistantState = {
   timeline: readonly TimelineItem[];
   messages: readonly Message[];
   activities: readonly Activity[];
-  confirmation?: Confirmation;
+  context: readonly ContextItem[];
+  proposals: readonly Proposal[];
   busy: boolean;
   error?: { code: ErrorCode; message: string };
 };
 export interface Assistant {
   send(text: string): Promise<void>;
   refreshTools(): Promise<ToolSnapshot>;
-  confirm(id: string, approved: boolean): void;
+  confirm(id: string, version: number, approved: boolean): void;
+  edit(id: string, version: number, args: Record<string, Json>): void;
+  removeContext(id: string): void;
   cancel(): void;
   clear(): void;
   getState(): AssistantState;
@@ -79,6 +126,8 @@ export type Theme = 'light' | 'dark' | 'system';
 export type BridgeOptions = {
   source: ToolSource;
   model: AgentAdapter;
+  context?: ContextSource;
+  review?: ReviewOptions;
   requiresConfirmation?: ConfirmationPolicy;
   maxRounds?: number;
   timeoutMs?: number;
@@ -87,6 +136,8 @@ export type BridgeOptions = {
 export type AssistantOptions = {
   model: AgentAdapter;
   source?: ToolSource;
+  context?: ContextSource;
+  review?: ReviewOptions;
   requiresConfirmation?: ConfirmationPolicy;
   developerMode?: boolean;
   theme?: Theme;
