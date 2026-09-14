@@ -291,6 +291,78 @@ button {
   background: var(--aw-color-border);
 }
 
+.proposal-panel {
+  width: 100%;
+  max-width: min(var(--aw-bar-width), 100vw - 24px);
+  margin-bottom: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--aw-color-warning-border);
+  border-radius: var(--aw-radius);
+  background: var(--aw-color-warning);
+}
+
+.proposal-panel[hidden] {
+  display: none !important;
+}
+
+.proposal-title {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.proposal-preview {
+  margin: 6px 0;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: var(--aw-color-surface);
+  white-space: pre-wrap;
+  max-height: 8rem;
+  overflow: auto;
+}
+
+.proposal-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 8px 0;
+}
+
+.proposal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+}
+
+.proposal-json {
+  width: 100%;
+  font-family: var(--aw-font-mono);
+  font-size: 12px;
+  border: 1px solid var(--aw-color-border);
+  border-radius: 8px;
+  padding: 6px;
+  background: var(--aw-color-surface);
+  color: var(--aw-color-text);
+}
+
+.proposal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.proposal-error {
+  color: var(--aw-color-danger);
+  margin: 4px 0 0;
+}
+
+.proposal-panel button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .main {
   position: relative;
   display: flex;

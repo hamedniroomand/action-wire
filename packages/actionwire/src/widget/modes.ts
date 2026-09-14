@@ -19,10 +19,20 @@ const ACTIVE: ReadonlySet<Activity['status']> = new Set([
   'approved',
 ]);
 
+export function activeReviewProposal(state: AssistantState): Proposal | undefined {
+  return state.proposals.find(
+    (proposal) =>
+      proposal.status === 'preparing' ||
+      proposal.status === 'needs-input' ||
+      proposal.status === 'ready-for-review' ||
+      proposal.status === 'approved',
+  );
+}
+
 export function toBarMode(state: AssistantState, ui: BarUi): BarMode {
   if (!ui.open) return { kind: 'collapsed' };
-  const review = state.proposals.find((proposal) => proposal.status === 'ready-for-review');
-  if (review !== undefined) {
+  const review = activeReviewProposal(state);
+  if (review !== undefined && review.status === 'ready-for-review') {
     return { kind: 'review', proposal: review };
   }
   if (state.error !== undefined) {

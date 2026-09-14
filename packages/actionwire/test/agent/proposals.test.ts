@@ -13,7 +13,10 @@ const write: ToolDefinition = {
   id: 'write',
   name: 'write',
   description: 'Write',
-  inputSchema: { type: 'object' },
+  inputSchema: {
+    type: 'object',
+    properties: { title: { type: 'string' }, n: { type: 'integer' } },
+  },
   consequential: true,
 };
 
@@ -126,5 +129,30 @@ it('runs only one write when review.independent is true and the other is exclude
   await sending;
   expect(execute).toHaveBeenCalledTimes(1);
   expect(execute.mock.calls[0]?.[0].id).toBe('c1');
+  assistant.dispose();
+});
+
+it('updates stored call arguments synchronously on edit', async () => {
+  const generate = vi.fn().mockResolvedValueOnce({
+    text: '',
+    toolCalls: [{ id: 'c1', toolId: 'write', arguments: { n: 1 } }],
+  });
+  const assistant = createAgentBridge({
+    source: {
+      discover: async () => ({ revision: 1, tools: [write] }),
+      execute: vi.fn(),
+      subscribe: () => () => {},
+      dispose: () => {},
+    },
+    model: { generate },
+  });
+  void assistant.send('Edit.');
+  await vi.waitFor(() =>
+    expect(assistant.getState().proposals[0]?.status).toBe('ready-for-review'),
+  );
+  const proposal = assistant.getState().proposals[0]!;
+  assistant.edit(proposal.id, proposal.version, { n: 9 });
+  expect(assistant.getState().proposals[0]?.call.arguments).toEqual({ n: 9 });
+  assistant.cancel();
   assistant.dispose();
 });

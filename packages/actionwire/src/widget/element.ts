@@ -1,8 +1,9 @@
-import type { Assistant, AssistantState } from '~/core';
+import type { Assistant, AssistantState, ToolSnapshot } from '~/core';
 import { createBar } from '~/widget/bar';
 import { createContextRow } from '~/widget/context';
 import { hotkeyLabel, isMacPlatform, listenToggle } from '~/widget/hotkey';
-import { toBarMode } from '~/widget/modes';
+import { activeReviewProposal, toBarMode } from '~/widget/modes';
+import { createProposalPanel } from '~/widget/proposal';
 import { STYLES } from '~/widget/styles';
 import { createTranscript } from '~/widget/transcript';
 
@@ -50,7 +51,9 @@ function attach(shadow: ShadowRoot, assistant: Assistant, developerMode: boolean
   root.className = 'root';
   const transcriptRoot = document.createElement('div');
   const contextRoot = document.createElement('div');
+  const proposalRoot = document.createElement('div');
   const barRoot = document.createDocumentFragment();
+  let toolSnapshot: ToolSnapshot | undefined;
 
   const contextRow = createContextRow(contextRoot, {
     remove: (id) => {
@@ -61,9 +64,24 @@ function attach(shadow: ShadowRoot, assistant: Assistant, developerMode: boolean
     },
   });
 
+  const proposalPanel = createProposalPanel(proposalRoot, {
+    confirm: (id, version, approved) => {
+      assistant.confirm(id, version, approved);
+    },
+    edit: (id, version, args) => {
+      assistant.edit(id, version, args);
+    },
+  });
+
   function render(state: AssistantState = assistant.getState()): void {
     const mode = toBarMode(state, { open: ui.open, draft: bar.getDraft() });
     contextRow.sync(state.context);
+    const review = activeReviewProposal(state);
+    const tool =
+      review === undefined || toolSnapshot === undefined
+        ? undefined
+        : toolSnapshot.tools.find((entry) => entry.id === review.call.toolId);
+    proposalPanel.sync(review, tool);
     transcript.sync(state, ui.open && ui.transcriptOpen);
     bar.sync(mode, ui.tools, ui.transcriptOpen);
   }
@@ -78,7 +96,8 @@ function attach(shadow: ShadowRoot, assistant: Assistant, developerMode: boolean
       fetchedTools = true;
       void (async () => {
         try {
-          ui.tools = (await assistant.refreshTools()).tools.length;
+          toolSnapshot = await assistant.refreshTools();
+          ui.tools = toolSnapshot.tools.length;
           render();
         } catch {
           // No pill when discovery fails. The turn reports the error itself.
@@ -136,14 +155,14 @@ function attach(shadow: ShadowRoot, assistant: Assistant, developerMode: boolean
     { hotkeyLabel: hotkeyLabel(mac) },
   );
 
-  root.append(transcriptRoot, contextRoot, barRoot);
+  root.append(transcriptRoot, contextRoot, proposalRoot, barRoot);
   shadow.replaceChildren(style, root);
 
   function onKeydown(event: KeyboardEvent): void {
     if (event.key !== 'Escape') return;
     event.preventDefault();
-    const review = assistant.getState().proposals.find((p) => p.status === 'ready-for-review');
-    if (review !== undefined) {
+    const review = activeReviewProposal(assistant.getState());
+    if (review?.status === 'ready-for-review') {
       assistant.confirm(review.id, review.version, false);
       return;
     }
