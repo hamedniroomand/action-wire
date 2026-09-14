@@ -1,8 +1,8 @@
 # Package
 
-> One package, one entry point. `npm i action-wire`.
+> One package, one entry point. `npm i actionwire`.
 
-Everything ships in `action-wire`. It is ESM only and has one runtime
+Everything ships in `actionwire`. It is ESM only and has one runtime
 dependency, `@cfworker/json-schema`, used to validate tool input against your
 schema. It never calls `eval` or `new Function`, so the widget runs on pages
 that forbid runtime code generation.
@@ -14,13 +14,14 @@ import {
   createWebMCPSource, // read the tools on the page
   openAICompatible, // talk to your model endpoint
   AgentError, // every failure, with a code
-} from 'action-wire';
+} from 'actionwire';
 ```
 
-Types come from the same place: `ToolSource`, `ToolDefinition`, `ToolCall`,
-`ToolResult`, `ToolSnapshot`, `AssistantOptions`, `AssistantState`, `Assistant`,
-`MountedAssistant`, `AgentAdapter`, `Message`, `Activity`, `Confirmation`,
-`ConfirmationPolicy`, `ErrorCode`, and `Json`.
+Types come from the same place: `Activity`, `AgentAdapter`, `AgentTurn`,
+`Assistant`, `AssistantOptions`, `AssistantState`, `BridgeOptions`,
+`Confirmation`, `ConfirmationPolicy`, `ErrorCode`, `Json`, `Message`,
+`MountedAssistant`, `TimelineItem`, `ToolCall`, `ToolDefinition`, `ToolResult`,
+`ToolSnapshot`, `ToolSource`, and `ToolStatus`.
 
 The package is marked `sideEffects: false`, so a bundler drops whatever you do
 not import. Using only the headless bridge leaves the widget out of your build.

@@ -18,7 +18,7 @@ interface AgentAdapter {
 ## openAICompatible
 
 ```ts
-import { openAICompatible } from 'action-wire';
+import { openAICompatible } from 'actionwire';
 
 const model = openAICompatible({ endpoint: '/api/assistant' });
 ```
@@ -55,8 +55,8 @@ Use one when your provider does not speak the OpenAI shape, or when you want to
 add retries, logging, or a local model.
 
 ```ts [adapter.ts]
-import { AgentError } from 'action-wire';
-import type { AgentAdapter } from 'action-wire';
+import { AgentError } from 'actionwire';
+import type { AgentAdapter } from 'actionwire';
 
 export function myModel(endpoint: string): AgentAdapter {
   return {

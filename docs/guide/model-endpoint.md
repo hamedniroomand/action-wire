@@ -7,11 +7,14 @@ route forwards the request to the model provider and adds the credentials.
 
 ```mermaid
 %%{init: {'themeVariables': {'lineColor': '#7c7c93'}}}%%
-flowchart LR
-  widget[Widget in the page] -->|POST /api/assistant| server[Your Node route]
-  server -->|API key| provider[Model provider]
-  provider --> server
-  server --> widget
+sequenceDiagram
+  participant W as Widget in the page
+  participant S as Your Node route
+  participant P as Model provider
+  W->>S: POST /api/assistant
+  S->>P: The same request, plus the API key
+  P-->>S: The model answer
+  S-->>W: The model answer
 ```
 
 ::: caution
@@ -59,18 +62,18 @@ cp playground/.env.example playground/.env
 pnpm playground:server
 ```
 
-| Variable                   | Purpose                             |
-| -------------------------- | ----------------------------------- |
-| `ACTION_WIRE_UPSTREAM_URL` | The provider chat-completions URL.  |
-| `ACTION_WIRE_MODEL`        | The model name to request.          |
-| `ACTION_WIRE_API_KEY`      | The provider key. Server side only. |
+| Variable                  | Purpose                             |
+| ------------------------- | ----------------------------------- |
+| `ACTIONWIRE_UPSTREAM_URL` | The provider chat-completions URL.  |
+| `ACTIONWIRE_MODEL`        | The model name to request.          |
+| `ACTIONWIRE_API_KEY`      | The provider key. Server side only. |
 
 Write your provider key into `playground/.env` before you start the server. The
-copied file leaves `ACTION_WIRE_API_KEY` empty. Without a key, every request
-returns `503` and the message `Set ACTION_WIRE_UPSTREAM_URL,
-ACTION_WIRE_MODEL, and ACTION_WIRE_API_KEY.`
+copied file leaves `ACTIONWIRE_API_KEY` empty. Without a key, every request
+returns `503` and the message `Set ACTIONWIRE_UPSTREAM_URL,
+ACTIONWIRE_MODEL, and ACTIONWIRE_API_KEY.`
 
-It listens on `127.0.0.1:8787`. Set `ACTION_WIRE_PORT` to use a different port.
+It listens on `127.0.0.1:8787`. Set `ACTIONWIRE_PORT` to use a different port.
 The Vite configurations proxy `/api/assistant` to that address.
 
 `pnpm playground:dev` starts this endpoint for you, so you need
@@ -90,7 +93,7 @@ provider with a different shape, write your own adapter instead. It is one
 method:
 
 ```ts [adapter.ts]
-import type { AgentAdapter } from 'action-wire';
+import type { AgentAdapter } from 'actionwire';
 
 export const myModel: AgentAdapter = {
   async generate({ messages, tools, signal }) {

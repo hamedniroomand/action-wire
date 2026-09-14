@@ -1,9 +1,9 @@
 # Widget
 
-> `createAssistant` from `action-wire`.
+> `createAssistant` from `actionwire`.
 
 ```ts
-import { createAssistant } from 'action-wire';
+import { createAssistant } from 'actionwire';
 
 const assistant = createAssistant(options);
 ```

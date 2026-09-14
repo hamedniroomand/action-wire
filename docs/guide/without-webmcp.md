@@ -22,7 +22,7 @@ when you leave `source` empty. Pass one, and no code reads
 A `ToolSource` is four methods.
 
 ```ts [source.ts]
-import type { ToolSource } from 'action-wire';
+import type { ToolSource } from 'actionwire';
 
 export function createLocalSource(): ToolSource {
   return {
@@ -80,7 +80,7 @@ against the old list expire correctly.
 
 ## A working example
 
-`packages/action-wire/e2e/main.ts` in this repository drives the whole product from a
+`packages/actionwire/e2e/main.ts` in this repository drives the whole product from a
 hand-written source with static tools, including the destructive-delete
 confirmation. It runs in unmodified Chromium, with no flags, as part of the test
 suite.

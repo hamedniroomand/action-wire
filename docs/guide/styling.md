@@ -13,25 +13,42 @@ action-wire {
 
 ## Variables
 
-| Variable                 | Purpose                                       |
-| ------------------------ | --------------------------------------------- |
-| `--aw-color-accent`      | Launcher fill, send button, focus ring.       |
-| `--aw-color-accent-text` | Text drawn on the accent colour.              |
-| `--aw-color-surface`     | Panel background.                             |
-| `--aw-color-text`        | Primary text.                                 |
-| `--aw-color-muted`       | Secondary text, timestamps, tool card labels. |
-| `--aw-color-border`      | Panel border and dividers.                    |
-| `--aw-color-user`        | Background of the person's message bubble.    |
-| `--aw-font`              | Font stack for the whole panel.               |
-| `--aw-radius`            | Corner radius of the panel and cards.         |
-| `--aw-radius-full`       | Corner radius of round controls.              |
-| `--aw-shadow`            | Panel shadow.                                 |
-| `--aw-space`             | Base spacing step.                            |
-| `--aw-panel-width`       | Panel width on a desktop screen.              |
-| `--aw-panel-max-height`  | Maximum panel height.                         |
-| `--aw-launcher-size`     | Diameter of the closed launcher button.       |
+### Colour
 
-The definitions live in `packages/action-wire/src/widget/styles.ts`.
+| Variable                    | Purpose                                            |
+| --------------------------- | -------------------------------------------------- |
+| `--aw-color-accent`         | Launcher fill, send button, focus ring.            |
+| `--aw-color-accent-strong`  | End of the launcher gradient. Hover fill.          |
+| `--aw-color-accent-text`    | Text drawn on the accent colour.                   |
+| `--aw-color-surface`        | Panel background.                                  |
+| `--aw-color-raised`         | Assistant bubble, composer field, code background. |
+| `--aw-color-text`           | Primary text.                                      |
+| `--aw-color-muted`          | Secondary text, tool card labels.                  |
+| `--aw-color-border`         | Panel border and dividers.                         |
+| `--aw-color-user`           | Background of the person's message bubble.         |
+| `--aw-color-success`        | Tool card icon after a tool succeeds.              |
+| `--aw-color-danger`         | Tool card error icon. Destructive confirm button.  |
+| `--aw-color-warning`        | Confirmation background.                           |
+| `--aw-color-warning-border` | Confirmation border.                               |
+| `--aw-color-warning-text`   | Confirmation warning line.                         |
+
+### Type, shape, and size
+
+| Variable                | Purpose                                  |
+| ----------------------- | ---------------------------------------- |
+| `--aw-font`             | Font stack for the whole panel.          |
+| `--aw-font-mono`        | Tool names, code spans, and code blocks. |
+| `--aw-radius`           | Corner radius of the panel and cards.    |
+| `--aw-radius-bubble`    | Corner radius of a message bubble.       |
+| `--aw-radius-full`      | Corner radius of round controls.         |
+| `--aw-shadow`           | Panel shadow.                            |
+| `--aw-space`            | Base spacing step.                       |
+| `--aw-panel-width`      | Panel width on a desktop screen.         |
+| `--aw-panel-max-height` | Maximum panel height.                    |
+| `--aw-launcher-size`    | Diameter of the closed launcher button.  |
+| `--aw-avatar-size`      | Diameter of the assistant avatar.        |
+
+The definitions live in `packages/actionwire/src/widget/styles.ts`.
 
 ## Layout rules you do not control
 

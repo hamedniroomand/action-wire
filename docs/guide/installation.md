@@ -6,7 +6,7 @@
 
 | Requirement | Value                                                |
 | ----------- | ---------------------------------------------------- |
-| Node.js     | 22.12 or later in the 22 line, 24, or 26 and later   |
+| Node.js     | 22.12 or newer, 24, or 26 or newer. Not 23 or 25.    |
 | Browser     | A secure context with native `document.modelContext` |
 | Module type | ESM. Import from a bundler or a native module page.  |
 | Model       | An OpenAI-compatible HTTP endpoint that you operate  |
@@ -19,19 +19,19 @@ before you install anything.
 ::: code-group
 
 ```sh [pnpm]
-pnpm add action-wire
+pnpm add actionwire
 ```
 
 ```sh [npm]
-npm install action-wire
+npm install actionwire
 ```
 
 ```sh [yarn]
-yarn add action-wire
+yarn add actionwire
 ```
 
 ```sh [bun]
-bun add action-wire
+bun add actionwire
 ```
 
 :::
@@ -42,12 +42,13 @@ runtime dependency is `@cfworker/json-schema`, which validates tool input
 without generating code, so it works under a strict Content-Security-Policy.
 
 <ReadMore to="/reference/" title="What the package exports" />
+
 ## Check the install
 
 Put this on a page that already registered at least one WebMCP tool:
 
 ```ts [check.ts]
-import { createWebMCPSource } from 'action-wire';
+import { createWebMCPSource } from 'actionwire';
 
 const source = createWebMCPSource();
 const snapshot = await source.discover();

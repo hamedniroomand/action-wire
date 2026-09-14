@@ -24,8 +24,7 @@ hero:
 ---
 
 ```ts [app.ts]
-import { openAICompatible } from 'action-wire';
-import { createAssistant } from 'action-wire';
+import { createAssistant, openAICompatible } from 'actionwire';
 
 createAssistant({
   model: openAICompatible({ endpoint: '/api/assistant' }),

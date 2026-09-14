@@ -30,10 +30,13 @@ await document.modelContext.registerTool({
 The description is what the model reads to choose the tool. Write it for a
 reader who cannot see your code.
 
+`projects` is your own module. The handler calls the same code your buttons
+call, so the assistant changes the state the page already shows.
+
 ### Mount the widget
 
 ```ts [assistant.ts]
-import { createAssistant, openAICompatible } from 'action-wire';
+import { createAssistant, openAICompatible } from 'actionwire';
 
 const assistant = createAssistant({
   model: openAICompatible({ endpoint: '/api/assistant' }),
@@ -52,11 +55,21 @@ holds the API key. See [Model endpoint](/guide/model-endpoint).
 
 ### Ask for the action
 
-Open the page in the flagged browser, select the launcher, and type
-`create a project called Phoenix`. The assistant shows the tool card, runs your
-handler, and answers.
+Start your application, then open it in the flagged browser. Select the
+launcher and type `create a project called Phoenix`. The assistant reads the
+`createProject` description, shows the tool card, runs your handler, and
+answers.
+
+`Phoenix` is only the name you type. The tool creates that project, so nothing
+needs to exist first.
 
 </Steps>
+
+::: tip
+To see this work before you write an application, run the playground in this
+repository. It registers project tools and ships a model endpoint. See
+[Development](/project/development).
+:::
 
 ## Register tools before you mount
 

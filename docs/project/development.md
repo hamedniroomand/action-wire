@@ -9,7 +9,7 @@ repository root.
 
 | Path                       | What it is                                                       |
 | -------------------------- | ---------------------------------------------------------------- |
-| `packages/action-wire`     | The published package. Its `src` holds the four layers below.    |
+| `packages/actionwire`      | The published package. Its `src` holds the four layers below.    |
 | `src/core`                 | Types, registry, events, errors. No browser API.                 |
 | `src/webmcp`               | Native discovery and execution. The only browser-gated layer.    |
 | `src/agent`                | Bridge, session, confirmation policy, OpenAI-compatible adapter. |
@@ -86,7 +86,7 @@ pnpm build
 
 ## Rules that the tests enforce
 
-- No React, Vue, Svelte, or voice dependency in `packages/action-wire`.
+- No React, Vue, Svelte, or voice dependency in `packages/actionwire`.
 - No tool definition duplicated between the page and the agent.
 - No replacement registry and no `document.modelContext` polyfill.
 - Layers import in one direction only. `src/core` may not import `src/webmcp`,
@@ -99,7 +99,7 @@ The site is a VitePress package in `docs`. It is part of the pnpm workspace, so
 a root `pnpm install` installs it. A root `pnpm build` builds the library only.
 
 ```sh
-pnpm --filter action-wire-docs dev
+pnpm --filter actionwire-docs dev
 pnpm docs:build
 ```
 

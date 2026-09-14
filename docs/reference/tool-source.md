@@ -14,7 +14,7 @@ interface ToolSource {
 ## The native source
 
 ```ts
-import { createWebMCPSource } from 'action-wire';
+import { createWebMCPSource } from 'actionwire';
 
 const source = createWebMCPSource();
 ```

@@ -2,11 +2,11 @@
 
 > Thirteen codes. Each one has fixed copy in the widget.
 
-Failures arrive as `AgentError` from `action-wire`, with a `code` field, or
+Failures arrive as `AgentError` from `actionwire`, with a `code` field, or
 as a `ToolResult` with `ok: false` and a `code`.
 
 ```ts
-import { AgentError } from 'action-wire';
+import { AgentError } from 'actionwire';
 
 try {
   await assistant.send('delete everything');

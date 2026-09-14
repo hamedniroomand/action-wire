@@ -40,16 +40,28 @@ run once, or every re-render tears the assistant down and builds it again.
 
 ```vue [App.vue]
 <script setup lang="ts">
+  let registration: AbortController | undefined;
+  let assistant: ReturnType<typeof createAssistant> | undefined;
+
   onMounted(start);
   onUnmounted(stop);
 
   async function start(): Promise<void> {
+    stop();
     registration = new AbortController();
+    const signal = registration.signal;
     assistant = createAssistant({
       model: openAICompatible({ endpoint: '/api/assistant' }),
     });
-    await document.modelContext.registerTool(tool, { signal: registration.signal });
-    assistant.mount();
+    await document.modelContext.registerTool(tool, { signal });
+    if (!signal.aborted) assistant.mount();
+  }
+
+  function stop(): void {
+    assistant?.dispose();
+    registration?.abort();
+    assistant = undefined;
+    registration = undefined;
   }
 </script>
 ```
@@ -63,16 +75,28 @@ after a click.
 
 ```svelte [App.svelte]
 <script lang="ts">
+  let registration: AbortController | undefined;
+  let assistant: ReturnType<typeof createAssistant> | undefined;
+
   onMount(start);
   onDestroy(stop);
 
   async function start(): Promise<void> {
+    stop();
     registration = new AbortController();
+    const signal = registration.signal;
     assistant = createAssistant({
       model: openAICompatible({ endpoint: '/api/assistant' }),
     });
-    await document.modelContext.registerTool(tool, { signal: registration.signal });
-    assistant.mount();
+    await document.modelContext.registerTool(tool, { signal });
+    if (!signal.aborted) assistant.mount();
+  }
+
+  function stop(): void {
+    assistant?.dispose();
+    registration?.abort();
+    assistant = undefined;
+    registration = undefined;
   }
 </script>
 ```

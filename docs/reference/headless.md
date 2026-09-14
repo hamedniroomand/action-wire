@@ -1,11 +1,11 @@
 # Headless bridge
 
-> `createAgentBridge` from `action-wire`. The whole product, without a user interface.
+> `createAgentBridge` from `actionwire`. The whole product, without a user interface.
 
 Use this when your application renders its own chat surface.
 
 ```ts [assistant.ts]
-import { createAgentBridge, createWebMCPSource, openAICompatible } from 'action-wire';
+import { createAgentBridge, createWebMCPSource, openAICompatible } from 'actionwire';
 
 const assistant = createAgentBridge({
   source: createWebMCPSource(),

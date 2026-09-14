@@ -35,8 +35,10 @@ replaced:
 - Drop the widget, and the [headless bridge](/reference/headless) drives your own
   interface.
 
-Only `src/webmcp` touches a browser API. Core, agent, and the widget are plain
-TypeScript.
+Only `src/webmcp` reads `document.modelContext`, so it is the one layer a
+browser must support. `src/core` and `src/agent` use no browser API at all.
+`src/widget` is a Web Component, so it uses the DOM, but it holds no WebMCP
+logic and works with any tool source.
 
 The layers ship in one package but keep a one-way import order: `core`, then
 `webmcp` and `agent`, then `widget`. An oxlint `no-restricted-imports` rule

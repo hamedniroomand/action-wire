@@ -21,6 +21,7 @@ context.
   LAN address such as `http://192.168.1.10` is not.
 
 <ReadMore to="/guide/browser-setup" title="Browser setup" />
+
 If your users cannot use a flag, supply your own
 [tool source](/guide/without-webmcp).
 
@@ -67,7 +68,7 @@ Code `MODEL_ERROR`. The `/api/assistant` route failed, returned text that is not
 JSON, or could not reach the provider.
 
 - Confirm the dev-server proxy forwards `/api/assistant` to your Node route.
-- Confirm `ACTION_WIRE_UPSTREAM_URL` and `ACTION_WIRE_API_KEY` on the server.
+- Confirm `ACTIONWIRE_UPSTREAM_URL` and `ACTIONWIRE_API_KEY` on the server.
 - Read the server log. The browser is told the request failed and nothing more,
   on purpose.
 

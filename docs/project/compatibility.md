@@ -41,7 +41,7 @@ These configurations are not a supported WebMCP host for this release. The produ
 | Safari / WebKit                                                           | Not verified. The required API is not part of this release matrix. |
 | Insecure remote HTTP                                                      | Out of scope. Discovery requires a secure context.                 |
 
-Fixture Playwright suites under `tests/e2e/failures.spec.ts` and `packages/action-wire/e2e` use a test `ToolSource`. They are not native compatibility evidence. Native evidence is `pnpm test:native`, `playground/compatibility/probe.spec.ts`, and `tests/e2e/native-webmcp.spec.ts`. That native suite fails when the API is absent. It does not skip.
+Fixture Playwright suites under `tests/e2e/failures.spec.ts` and `packages/actionwire/e2e` use a test `ToolSource`. They are not native compatibility evidence. Native evidence is `pnpm test:native`, `playground/compatibility/probe.spec.ts`, and `tests/e2e/native-webmcp.spec.ts`. That native suite fails when the API is absent. It does not skip.
 
 ## Widget viewport matrix
 
@@ -67,7 +67,7 @@ Verified in Playwright Chromium with `tests/e2e/frameworks.spec.ts`.
 | 6   | The existing application handler performs the action                               | playground journey plus Vanilla/React/Vue/Svelte example tests                                  |
 | 7   | The result is returned to the agent                                                | `playground/e2e/journey.spec.ts`                                                                |
 | 8   | The assistant responds naturally after execution                                   | Scripted wording in `playground/e2e/journey.spec.ts`. Manual real-model steps are in that file. |
-| 9   | Tool activity is visible in the widget                                             | Journey plus `packages/action-wire/e2e/accessibility.spec.ts`                                   |
+| 9   | Tool activity is visible in the widget                                             | Journey plus `packages/actionwire/e2e/accessibility.spec.ts`                                    |
 | 10  | Destructive actions require confirmation                                           | Journey plus widget confirmation tests                                                          |
 | 11  | Tool availability can refresh while the app is running                             | Journey billing tools, `tests/e2e/failures.spec.ts` navigation case                             |
 | 12  | The same browser/core implementation works with Vanilla JS, Vue, React, and Svelte | `tests/e2e/frameworks.spec.ts` and `examples/*/e2e`                                             |
@@ -89,9 +89,9 @@ For a manual check, run `pnpm probe`. Open the loopback address in the target br
 
 ## Invariants for the native adapter
 
-These rules hold in `packages/action-wire/src/webmcp` today. Keep them.
+These rules hold in `packages/actionwire/src/webmcp` today. Keep them.
 
-- Native format conversion stays inside `packages/action-wire/src/webmcp`.
+- Native format conversion stays inside `packages/actionwire/src/webmcp`.
 - Parse a discovered JSON-string schema once and forward it. Do not write a
   second definition.
 - Send JSON-string arguments only for the format the tool declares.
