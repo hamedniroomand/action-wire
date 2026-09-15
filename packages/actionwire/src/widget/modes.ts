@@ -1,12 +1,13 @@
-import type { Activity, AssistantState, ErrorCode, Proposal } from '~/core';
+import type { Activity, AssistantState, ErrorCode, Proposal, ToolStatus } from '~/core';
 
-export type BarUi = { open: boolean; draft: string };
+/** `reviewInPanel` is true when the proposal panel owns the review controls. */
+export type BarUi = { open: boolean; draft: string; reviewInPanel?: boolean };
 
 export type BarMode =
   | { kind: 'collapsed' }
   | { kind: 'review'; proposal: Proposal }
   | { kind: 'error'; code: ErrorCode; retry: string | undefined }
-  | { kind: 'tool'; toolId: string; index: number; total: number }
+  | { kind: 'tool'; toolId: string; status: ToolStatus; index: number; total: number }
   | { kind: 'busy' }
   | { kind: 'receipt'; text: string; tools: number }
   | { kind: 'idle'; draft: string; history: boolean };
@@ -32,7 +33,7 @@ export function activeReviewProposal(state: AssistantState): Proposal | undefine
 export function toBarMode(state: AssistantState, ui: BarUi): BarMode {
   if (!ui.open) return { kind: 'collapsed' };
   const review = activeReviewProposal(state);
-  if (review !== undefined && review.status === 'ready-for-review') {
+  if (review !== undefined && review.status === 'ready-for-review' && ui.reviewInPanel !== true) {
     return { kind: 'review', proposal: review };
   }
   if (state.error !== undefined) {
@@ -43,7 +44,13 @@ export function toBarMode(state: AssistantState, ui: BarUi): BarMode {
     const position = turn.findIndex((activity) => ACTIVE.has(activity.status));
     const active = turn[position];
     if (active !== undefined) {
-      return { kind: 'tool', toolId: active.call.toolId, index: position + 1, total: turn.length };
+      return {
+        kind: 'tool',
+        toolId: active.call.toolId,
+        status: active.status,
+        index: position + 1,
+        total: turn.length,
+      };
     }
     return { kind: 'busy' };
   }

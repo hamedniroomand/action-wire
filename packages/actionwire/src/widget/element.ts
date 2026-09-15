@@ -74,14 +74,14 @@ function attach(shadow: ShadowRoot, assistant: Assistant, developerMode: boolean
   });
 
   function render(state: AssistantState = assistant.getState()): void {
-    const mode = toBarMode(state, { open: ui.open, draft: bar.getDraft() });
     contextRow.sync(state.context);
     const review = activeReviewProposal(state);
     const tool =
       review === undefined || toolSnapshot === undefined
         ? undefined
         : toolSnapshot.tools.find((entry) => entry.id === review.call.toolId);
-    proposalPanel.sync(review, tool);
+    const reviewInPanel = proposalPanel.sync(review, tool);
+    const mode = toBarMode(state, { open: ui.open, draft: bar.getDraft(), reviewInPanel });
     transcript.sync(state, ui.open && ui.transcriptOpen);
     bar.sync(mode, ui.tools, ui.transcriptOpen);
   }

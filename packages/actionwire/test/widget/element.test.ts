@@ -122,11 +122,14 @@ it('runs a consequential tool only after the confirm click', async () => {
   input().value = 'delete it';
   enter(input());
   await flush();
-  await vi.waitFor(() => expect(bar().dataset['mode']).toBe('review'));
+  const panel = () => shadow().querySelector('.proposal-panel');
+  await vi.waitFor(() => expect(panel()?.hasAttribute('hidden')).toBe(false));
   expect(execute).not.toHaveBeenCalled();
-  const approve = [...shadow().querySelectorAll('button')].find((b) => b.textContent === 'Confirm');
-  if (approve === undefined) throw new Error('missing confirm button');
-  approve.click();
+  const confirms = [...shadow().querySelectorAll('button')].filter(
+    (b) => b.textContent === 'Confirm',
+  );
+  expect(confirms).toHaveLength(1);
+  confirms[0]!.click();
   await flush();
   await flush();
   expect(execute).toHaveBeenCalledTimes(1);

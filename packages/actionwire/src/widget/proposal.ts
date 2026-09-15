@@ -9,7 +9,8 @@ export type ProposalHandlers = {
 };
 
 export type ProposalPanel = {
-  sync(proposal: Proposal | undefined, tool: ToolDefinition | undefined): void;
+  /** Returns true when the panel is on screen and owns the review controls. */
+  sync(proposal: Proposal | undefined, tool: ToolDefinition | undefined): boolean;
 };
 
 export function createProposalPanel(root: ParentNode, handlers: ProposalHandlers): ProposalPanel {
@@ -90,7 +91,7 @@ export function createProposalPanel(root: ParentNode, handlers: ProposalHandlers
         panel.hidden = true;
         bound = undefined;
         toolRef = undefined;
-        return;
+        return false;
       }
       toolRef = tool;
       const same =
@@ -110,6 +111,7 @@ export function createProposalPanel(root: ParentNode, handlers: ProposalHandlers
       apply.disabled = proposal.status === 'running' || proposal.status === 'succeeded';
       panel.dataset['status'] = proposal.status;
       restoreFocus();
+      return true;
     },
   };
 }

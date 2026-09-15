@@ -1,3 +1,4 @@
+import type { ToolStatus } from '~/core';
 import { createBarParts, type GlyphName } from '~/widget/bar-parts';
 import { el, text } from '~/widget/dom';
 import { busyCopy, friendlyError } from '~/widget/errors';
@@ -19,6 +20,20 @@ export type Bar = {
   sync(mode: BarMode, tools: number | undefined, transcriptOpen: boolean): void;
   getDraft(): string;
   focus(): void;
+};
+
+const TOOL_LINE: Record<ToolStatus, string> = {
+  preparing: 'preparing',
+  'needs-input': 'needs your input',
+  'ready-for-review': 'waiting for your review',
+  approved: 'approved',
+  running: 'running',
+  succeeded: 'succeeded',
+  failed: 'failed',
+  denied: 'denied',
+  invalidated: 'invalidated',
+  cancelled: 'cancelled',
+  'outcome-unknown': 'outcome unknown',
 };
 
 const COMPOSABLE: ReadonlySet<BarMode['kind']> = new Set(['idle', 'receipt']);
@@ -107,7 +122,7 @@ export function createBar(
         showGlyph('spinner');
         line.replaceChildren(
           text('span', 'tool-name', mode.toolId),
-          text('span', 'muted', 'running'),
+          text('span', 'muted', TOOL_LINE[mode.status]),
         );
         parts.meta.textContent = `${mode.index} of ${mode.total}`;
         break;

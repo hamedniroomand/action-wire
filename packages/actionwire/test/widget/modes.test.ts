@@ -70,6 +70,7 @@ it('shows the running tool with its position in the turn', () => {
   expect(toBarMode(s, open)).toEqual({
     kind: 'tool',
     toolId: 'renameProject',
+    status: 'running',
     index: 2,
     total: 2,
   });
