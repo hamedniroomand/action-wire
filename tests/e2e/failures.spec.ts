@@ -19,7 +19,7 @@ test('shows a tool error when the handler rejects', async ({ page }) => {
   await openCase(page, 'reject');
   await send(page, 'List projects.');
   await openTranscript(page);
-  await expect(page.locator('.tool-status', { hasText: 'Error' })).toBeVisible();
+  await expect(page.locator('.tool-status', { hasText: 'Failed' })).toBeVisible();
   await expect(page.locator('.tool-summary').filter({ hasText: 'The tool failed.' })).toBeVisible();
 });
 
@@ -57,13 +57,13 @@ test('cancels an in-flight turn on abort', async ({ page }) => {
 test('does not run a stale confirmation after the tool list changes', async ({ page }) => {
   await openCase(page, 'stale');
   await send(page, 'Delete Phoenix.');
-  await expect(page.getByRole('button', { name: 'Delete' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Confirm' })).toBeVisible();
   await page.evaluate(() => {
     const bump = Reflect.get(globalThis, '__bump');
     if (typeof bump !== 'function') throw new Error('missing bump');
     bump();
   });
-  await page.getByRole('button', { name: 'Delete' }).click();
+  await page.getByRole('button', { name: 'Confirm' }).click();
   await openTranscript(page);
   await expect(
     page

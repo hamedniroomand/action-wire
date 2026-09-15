@@ -48,7 +48,7 @@ test('opens Phoenix, renames to Aurora, denies then deletes once, and refreshes 
   await expect(page.getByRole('heading', { name: 'Aurora', exact: true })).toBeVisible();
 
   await send(page, 'Delete it.');
-  await page.locator('action-wire').getByRole('button', { name: 'Delete' }).click();
+  await page.locator('action-wire').getByRole('button', { name: 'Confirm' }).click();
   await expect(page.getByRole('heading', { name: 'Projects' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Aurora' })).toHaveCount(0);
   await expect(

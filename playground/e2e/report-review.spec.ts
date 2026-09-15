@@ -56,7 +56,11 @@ test('creates one report after preview, edit, and confirm on the Reports route',
   await expect
     .poll(async () => page.evaluate(() => Reflect.get(globalThis, '__reportCount')))
     .toBe(1);
-  await expect(page.getByText('Board')).toBeVisible();
+  // The tool result carries the edited audience, so the edit reached execution.
+  await page.locator('action-wire').getByRole('button', { name: 'Transcript' }).click();
+  await expect(
+    page.locator('action-wire').locator('.tool-summary').filter({ hasText: 'for Board' }),
+  ).toBeVisible();
 });
 
 test('direct native preview and create enforce the same validation without the widget', async ({
@@ -68,10 +72,22 @@ test('direct native preview and create enforce the same validation without the w
     const context = Reflect.get(document, 'modelContext');
     if (typeof context !== 'object' || context === null) return { ok: false, reason: 'no-api' };
     const getTools = Reflect.get(context, 'getTools');
-    const callTool = Reflect.get(context, 'callTool');
-    if (typeof getTools !== 'function' || typeof callTool !== 'function') {
+    const executeTool = Reflect.get(context, 'executeTool');
+    if (typeof getTools !== 'function' || typeof executeTool !== 'function') {
       return { ok: false, reason: 'no-tools' };
     }
+    // The native API mirrors the inputSchema encoding: a string schema wants string input.
+    // It rejects when the page handler throws, so validation shows up as a rejection.
+    const run = async (tool: object, args: Record<string, unknown>) => {
+      const schema = Reflect.get(tool, 'inputSchema');
+      const input = typeof schema === 'string' ? JSON.stringify(args) : args;
+      try {
+        const raw: unknown = await executeTool.call(context, tool, input);
+        return { ok: true, result: typeof raw === 'string' ? JSON.parse(raw) : raw };
+      } catch (error) {
+        return { ok: false, error: String(error) };
+      }
+    };
     const tools: unknown = await getTools.call(context);
     if (!Array.isArray(tools)) return { ok: false, reason: 'no-list' };
     const preview = tools.find(
@@ -82,22 +98,27 @@ test('direct native preview and create enforce the same validation without the w
       (tool) =>
         typeof tool === 'object' && tool !== null && Reflect.get(tool, 'name') === 'createReport',
     );
-    if (preview === undefined || create === undefined) return { ok: false, reason: 'missing-tool' };
-    const previewResult: unknown = await callTool.call(context, preview, {
+    if (typeof preview !== 'object' || preview === null) {
+      return { ok: false, reason: 'missing-tool' };
+    }
+    if (typeof create !== 'object' || create === null) {
+      return { ok: false, reason: 'missing-tool' };
+    }
+    const previewResult: unknown = await run(preview, {
       chartId: 'weekly-revenue',
       chartVersion: 'v1',
       title: 'Direct',
       audience: 'Ops',
       week: 12,
     });
-    const stale: unknown = await callTool.call(context, create, {
+    const stale: unknown = await run(create, {
       chartId: 'weekly-revenue',
       chartVersion: 'stale',
       title: 'Bad',
       audience: 'Ops',
       week: 12,
     });
-    const created: unknown = await callTool.call(context, create, {
+    const created: unknown = await run(create, {
       chartId: 'weekly-revenue',
       chartVersion: 'v1',
       title: 'Direct',
