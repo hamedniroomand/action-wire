@@ -130,6 +130,7 @@ export function createAgentBridge(options: BridgeOptions): Assistant {
   }
 
   async function runTurn(turnSignal: AbortSignal, epoch: number): Promise<void> {
+    toolsDirty = false;
     let snapshot = await discoverForTurn(turnSignal, epoch);
     for (let round = 0; round < maxRounds; round += 1) {
       if (!activeTurn(epoch) || turnSignal.aborted) throw abortFromSignal(turnSignal);
