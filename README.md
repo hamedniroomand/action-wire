@@ -12,6 +12,22 @@ A text assistant widget that uses the WebMCP tools already registered on a page.
 
 Voice is out of scope. The assistant does not persist conversation history across sessions.
 
+## Demo
+
+The video shows the playground. The assistant reads the tools the page registered, then runs them.
+
+<p align="center">
+  <video
+    src="https://s3.niroomand.dev/videos/actionwire.mp4"
+    controls
+    muted
+    playsinline
+    width="720"
+  ></video>
+</p>
+
+If the player does not appear, [open the video](https://s3.niroomand.dev/videos/actionwire.mp4).
+
 ## Requirements
 
 - Node.js 22.12+ in the 22 release line, Node.js 24, or Node.js 26+.
