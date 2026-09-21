@@ -38,6 +38,14 @@ export default defineConfig({
       },
     ],
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
+    [
+      'script',
+      {
+        src: 'https://umami.niroomand.dev/script.js',
+        defer: 'true',
+        'data-website-id': '5cac7b08-5d54-4a12-9c2b-bfad45227d85',
+      },
+    ],
   ],
 
   markdown: {
