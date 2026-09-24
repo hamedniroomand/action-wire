@@ -7,3 +7,12 @@ allowBuilds:
   '@parcel/watcher': false
   esbuild: false
   vue-demi: false
+minimumReleaseAgeExclude:
+  - '@oxlint-tsgolint/darwin-arm64@7.0.2003'
+  - '@oxlint-tsgolint/darwin-x64@7.0.2003'
+  - '@oxlint-tsgolint/linux-arm64@7.0.2003'
+  - '@oxlint-tsgolint/linux-x64@7.0.2003'
+  - '@oxlint-tsgolint/win32-arm64@7.0.2003'
+  - '@oxlint-tsgolint/win32-x64@7.0.2003'
+  - oxlint-tsgolint@7.0.2003
+  - vite@8.3.1
