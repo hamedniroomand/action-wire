@@ -46,6 +46,9 @@ test('opens Phoenix, renames to Aurora, denies then deletes once, and refreshes 
   await send(page, 'Delete it.');
   await page.locator('action-wire').getByRole('button', { name: 'Cancel' }).click();
   await expect(page.getByRole('heading', { name: 'Aurora', exact: true })).toBeVisible();
+  await expect(
+    page.locator('action-wire').getByText('The delete was cancelled.').first(),
+  ).toBeVisible();
 
   await send(page, 'Delete it.');
   await page.locator('action-wire').getByRole('button', { name: 'Confirm' }).click();
@@ -101,7 +104,7 @@ function scriptedTurn(payload: unknown, call: number): object {
     if (content.startsWith('Opened Phoenix'))
       return assistantText('I found Phoenix. Opening it now.');
     if (content.startsWith('Renamed')) return assistantText('The project is now Aurora.');
-    if (content.includes('denied')) return assistantText('The delete was cancelled.');
+    if (content.includes('excluded')) return assistantText('The delete was cancelled.');
     if (content.startsWith('Deleted')) return assistantText('The project was deleted.');
     if (content.startsWith('Opened billing')) return assistantText('Billing is open.');
     return assistantText('Done.');

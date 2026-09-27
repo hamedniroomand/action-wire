@@ -2,6 +2,7 @@ import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
   fullyParallel: true,
+  globalTimeout: 5 * 60_000,
   use: { trace: 'retain-on-failure' },
   projects: [
     {
@@ -103,13 +104,44 @@ export default defineConfig({
       },
     },
   ],
+  // pnpm runs scripts in a new process group. Playwright cannot stop that group, so call vite directly.
   webServer: [
-    { command: 'pnpm probe', url: 'http://127.0.0.1:4173', reuseExistingServer: false },
-    { command: 'pnpm widget:dev', url: 'http://127.0.0.1:4174', reuseExistingServer: false },
-    { command: 'pnpm playground:dev', url: 'http://127.0.0.1:4175', reuseExistingServer: false },
-    { command: 'pnpm vanilla:dev', url: 'http://127.0.0.1:4176', reuseExistingServer: false },
-    { command: 'pnpm react:dev', url: 'http://127.0.0.1:4177', reuseExistingServer: false },
-    { command: 'pnpm vue:dev', url: 'http://127.0.0.1:4178', reuseExistingServer: false },
-    { command: 'pnpm svelte:dev', url: 'http://127.0.0.1:4179', reuseExistingServer: false },
+    {
+      command:
+        'vite playground/compatibility --config vite.config.ts --host 127.0.0.1 --port 4173 --strictPort',
+      url: 'http://127.0.0.1:4173',
+      reuseExistingServer: false,
+    },
+    {
+      command:
+        'vite packages/actionwire/e2e --config vite.config.ts --host 127.0.0.1 --port 4174 --strictPort',
+      url: 'http://127.0.0.1:4174',
+      reuseExistingServer: false,
+    },
+    {
+      command: 'vite --config playground/vite.config.ts',
+      url: 'http://127.0.0.1:4175',
+      reuseExistingServer: false,
+    },
+    {
+      command: 'vite --config examples/vanilla/vite.config.ts',
+      url: 'http://127.0.0.1:4176',
+      reuseExistingServer: false,
+    },
+    {
+      command: 'vite --config examples/react/vite.config.ts',
+      url: 'http://127.0.0.1:4177',
+      reuseExistingServer: false,
+    },
+    {
+      command: 'vite --config examples/vue/vite.config.ts',
+      url: 'http://127.0.0.1:4178',
+      reuseExistingServer: false,
+    },
+    {
+      command: 'vite --config examples/svelte/vite.config.ts',
+      url: 'http://127.0.0.1:4179',
+      reuseExistingServer: false,
+    },
   ],
 });
