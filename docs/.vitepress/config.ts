@@ -5,6 +5,8 @@ import { icon } from './icons.ts';
 const DESCRIPTION =
   'Action Wire adds a text assistant to a web application. The assistant reads the WebMCP tools the application already registers, and calls them. The application keeps one definition of each tool.';
 
+const SITE_URL = 'https://action-wire.kitdev.space/';
+
 /** Sidebar links carry the icon the page used to declare in its frontmatter. */
 function link(name: string, text: string, path: string) {
   return { text: icon(name) + text, link: path };
@@ -15,17 +17,17 @@ export default defineConfig({
   description: DESCRIPTION,
   lang: 'en-US',
 
-  // Project page subpath. Keep in sync with `sitemap.hostname`.
-  base: '/action-wire/',
+  // The custom domain serves the site from its root.
+  base: '/',
 
   cleanUrls: true,
   lastUpdated: true,
 
-  sitemap: { hostname: 'https://hamedniroomand.github.io/action-wire/' },
+  sitemap: { hostname: SITE_URL },
 
   head: [
-    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/action-wire/icon.svg' }],
-    ['link', { rel: 'apple-touch-icon', href: '/action-wire/apple-touch-icon.png' }],
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/icon.svg' }],
+    ['link', { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' }],
     ['meta', { name: 'theme-color', content: '#2566f0' }],
     ['meta', { property: 'og:type', content: 'website' }],
     ['meta', { property: 'og:title', content: 'Action Wire' }],
@@ -34,7 +36,7 @@ export default defineConfig({
       'meta',
       {
         property: 'og:image',
-        content: 'https://hamedniroomand.github.io/action-wire/social-card.png',
+        content: `${SITE_URL}social-card.png`,
       },
     ],
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
@@ -44,6 +46,7 @@ export default defineConfig({
         src: 'https://umami.niroomand.dev/script.js',
         defer: 'true',
         'data-website-id': '5cac7b08-5d54-4a12-9c2b-bfad45227d85',
+        'data-domains': new URL(SITE_URL).hostname,
       },
     ],
   ],

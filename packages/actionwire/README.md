@@ -14,11 +14,11 @@ Your application publishes its actions once with `document.modelContext.register
 
 ## Requirements
 
-- A browser with native `document.modelContext` in a secure context. Chromium 153 with `--enable-experimental-web-platform-features` is the verified environment. See [compatibility](https://hamedniroomand.github.io/action-wire/project/compatibility).
+- A browser with native `document.modelContext` in a secure context. Chromium 153 with `--enable-experimental-web-platform-features` is the verified environment. See [compatibility](https://action-wire.kitdev.space/project/compatibility).
 - An OpenAI-compatible endpoint that you operate. The API key stays on your server.
 - ESM. Node.js 22.12+ for tooling.
 
-If your users cannot start a browser with a flag, supply your own tool source instead. See [Without native WebMCP](https://hamedniroomand.github.io/action-wire/guide/without-webmcp).
+If your users cannot start a browser with a flag, supply your own tool source instead. See [Without native WebMCP](https://action-wire.kitdev.space/guide/without-webmcp).
 
 ## Install
 
@@ -61,9 +61,9 @@ Model output is a request, not a command. A tool marked `consequentialHint: true
 
 ## Documentation
 
-[Guide](https://hamedniroomand.github.io/action-wire/guide/) ·
-[API reference](https://hamedniroomand.github.io/action-wire/reference/) ·
-[Architecture](https://hamedniroomand.github.io/action-wire/project/architecture) ·
+[Guide](https://action-wire.kitdev.space/guide/) ·
+[API reference](https://action-wire.kitdev.space/reference/) ·
+[Architecture](https://action-wire.kitdev.space/project/architecture) ·
 [GitHub](https://github.com/hamedniroomand/action-wire)
 
 ## License
