@@ -45,7 +45,7 @@ export default defineConfig({
       {
         src: 'https://umami.niroomand.dev/script.js',
         defer: 'true',
-        'data-website-id': '5cac7b08-5d54-4a12-9c2b-bfad45227d85',
+        'data-website-id': '87895575-91ce-450d-8d5d-f17f047100ba',
         'data-domains': new URL(SITE_URL).hostname,
       },
     ],
